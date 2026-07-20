@@ -30,7 +30,7 @@ export default function TrialInfo({ onNavigateToBooking }: TrialInfoProps) {
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight keep-all break-keep">
-            상담 전언이나 글만으로 결정하지 마세요.<br />
+            상담 안내나 소개글만으로 결정하지 마세요.<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">
               직접 수업을 경험한 후 선택하세요.
             </span>
