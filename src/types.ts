@@ -45,6 +45,8 @@ export interface Booking {
   examSchedule?: string;
   preferredSessionsCount?: string;
   preferredTeacherGender: '무관' | '여자 선생님' | '남자 선생님';
+  campExperience?: string;
+  preferredCampLocation?: string;
   memo?: string;
   status: BookingStatus;
   adminMemo?: string;

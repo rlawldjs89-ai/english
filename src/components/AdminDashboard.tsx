@@ -543,6 +543,16 @@ export default function AdminDashboard() {
                   <p className="text-slate-500">
                     <span className="font-bold text-slate-700">목표:</span> {selectedBooking.goals || '입력 없음'}
                   </p>
+                  {selectedBooking.campExperience && (
+                    <p className="text-slate-500">
+                      <span className="font-bold text-slate-700">해외캠프 경험 유무:</span> {selectedBooking.campExperience}
+                    </p>
+                  )}
+                  {selectedBooking.preferredCampLocation && (
+                    <p className="text-slate-500">
+                      <span className="font-bold text-slate-700">희망 캠프 국가/종류:</span> {selectedBooking.preferredCampLocation}
+                    </p>
+                  )}
                   {selectedBooking.examSchedule && (
                     <p className="text-orange-700 font-semibold bg-orange-50 p-1.5 rounded">
                       <span>목표 점수 및 시험일정:</span> {selectedBooking.examSchedule}

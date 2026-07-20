@@ -14,8 +14,8 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
   const [step, setStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Booking Version Selector (Student vs Adult)
-  const [bookingVersion, setBookingVersion] = useState<'student' | 'adult'>('student');
+  // Booking Version Selector (Student vs Adult vs Camp)
+  const [bookingVersion, setBookingVersion] = useState<'student' | 'adult' | 'camp'>('student');
 
   // Form Fields
   const [applicantName, setApplicantName] = useState(currentUser?.name || '');
@@ -40,6 +40,8 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
   const [examSchedule, setExamSchedule] = useState('');
   const [preferredSessionsCount, setPreferredSessionsCount] = useState('주 2회');
   const [preferredTeacherGender, setPreferredTeacherGender] = useState<Booking['preferredTeacherGender']>('무관');
+  const [campExperience, setCampExperience] = useState('없음');
+  const [preferredCampLocation, setPreferredCampLocation] = useState('캐나다 겨울 스쿨링 캠프');
   const [memo, setMemo] = useState('');
 
   // Agreements
@@ -81,6 +83,10 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
     if (bookingVersion === 'adult') {
       setRelationship('본인');
       setSelectedCourse('영어 회화');
+    } else if (bookingVersion === 'camp') {
+      setRelationship('어머니');
+      setSelectedCourse('2027 캐나다 3주 겨울 캠프');
+      setClassType('방문·화상 모두 상담 희망');
     } else {
       setRelationship('어머니');
       setSelectedCourse('초등 영어');
@@ -185,6 +191,8 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
       examSchedule: ['토익', '토플', '토익스피킹', '오픽', '아이엘츠', '기타 시험 대비'].includes(selectedCourse) ? examSchedule : undefined,
       preferredSessionsCount,
       preferredTeacherGender,
+      campExperience: bookingVersion === 'camp' ? campExperience : undefined,
+      preferredCampLocation: bookingVersion === 'camp' ? preferredCampLocation : undefined,
       memo,
       status: '신청 접수',
       createdAt: new Date().toISOString(),
@@ -224,7 +232,19 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
     '기타 시험 대비'
   ];
 
-  const coursesList = bookingVersion === 'student' ? studentCourses : adultCourses;
+  const campCourses = [
+    '2027 캐나다 3주 겨울 캠프',
+    '2027 캐나다 7주 겨울 캠프',
+    '2027 뉴질랜드 겨울 캠프',
+    '캐나다 정규 유학 컨설팅',
+    '뉴질랜드 정규 유학 컨설팅'
+  ];
+
+  const coursesList = bookingVersion === 'student' 
+    ? studentCourses 
+    : bookingVersion === 'adult' 
+    ? adultCourses 
+    : campCourses;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 md:py-16">
@@ -277,67 +297,80 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
             {step === 1 && (
               <div className="space-y-6 animate-in fade-in duration-200">
                 {/* Version Switch Tabs */}
-                <div className="bg-slate-100 p-1.5 rounded-2xl grid grid-cols-2 max-w-md mx-auto border border-slate-200">
+                <div className="bg-slate-100 p-1.5 rounded-2xl grid grid-cols-1 sm:grid-cols-3 max-w-2xl mx-auto border border-slate-200 gap-1.5 sm:gap-0">
                   <button
                     type="button"
                     onClick={() => setBookingVersion('student')}
-                    className={`py-2.5 text-xs md:text-sm font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                    className={`py-2.5 text-xs font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
                       bookingVersion === 'student'
                         ? 'bg-blue-900 text-white shadow-sm'
                         : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50/50'
                     }`}
                   >
-                    <span>🧑‍🎓</span> 학생 / 학부모 신청용
+                    <span>🧑‍🎓</span> 학생·학부모 과외
                   </button>
                   <button
                     type="button"
                     onClick={() => setBookingVersion('adult')}
-                    className={`py-2.5 text-xs md:text-sm font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                    className={`py-2.5 text-xs font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
                       bookingVersion === 'adult'
                         ? 'bg-blue-900 text-white shadow-sm'
                         : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50/50'
                     }`}
                   >
-                    <span>🧑</span> 성인 본인 신청용
+                    <span>🧑</span> 성인 본인 과외
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookingVersion('camp')}
+                    className={`py-2.5 text-xs font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                      bookingVersion === 'camp'
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50/50'
+                    }`}
+                  >
+                    <span>✈️</span> 해외 캠프·유학 상담
                   </button>
                 </div>
 
+
+
                 <h3 className="text-lg font-bold text-slate-900 border-b pb-2 text-center">
-                  {bookingVersion === 'adult' ? '1. 수강생 본인 기본 정보' : '1. 신청인(학부모) 기본 정보'}
+                  {bookingVersion === 'adult' ? '1. 수강생 본인 기본 정보' : bookingVersion === 'camp' ? '1. 신청인(학부모) 기본 정보' : '1. 신청인(학부모) 기본 정보'}
                 </h3>
                 
                 {/* 1.1 기본 정보 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      {bookingVersion === 'adult' ? '수강생 본인 이름' : '학부모 성함'} <span className="text-red-500">*</span>
+                      {bookingVersion === 'adult' ? '수강생 본인 이름' : bookingVersion === 'camp' ? '학부모 성함 (신청인)' : '학부모 성함'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={applicantName}
                       onChange={(e) => setApplicantName(e.target.value)}
-                      placeholder={bookingVersion === 'adult' ? '수강생 본인 성함을 입력해 주세요' : '학부모 성함을 입력해 주세요'}
+                      placeholder={bookingVersion === 'adult' ? '수강생 본인 성함을 입력해 주세요' : bookingVersion === 'camp' ? '학부모(신청인) 성함을 입력해 주세요' : '학부모 성함을 입력해 주세요'}
                       className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      {bookingVersion === 'adult' ? '본인 연락처' : '학부모 연락처'} <span className="text-red-500">*</span>
+                      {bookingVersion === 'adult' ? '본인 연락처' : bookingVersion === 'camp' ? '학부모 연락처' : '학부모 연락처'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
                       required
                       value={contact}
                       onChange={(e) => setContact(e.target.value)}
-                      placeholder={bookingVersion === 'adult' ? '예: 010-1234-5678 (본인 번호)' : '예: 010-1234-5678 (학부모 번호)'}
+                      placeholder={bookingVersion === 'adult' ? '예: 010-1234-5678 (본인 번호)' : bookingVersion === 'camp' ? '예: 010-1234-5678 (학부모 번호)' : '예: 010-1234-5678 (학부모 번호)'}
                       className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
                 </div>
 
-                {bookingVersion === 'student' && (
+                {(bookingVersion === 'student' || bookingVersion === 'camp') && (
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-2">
                       학생과의 관계 <span className="text-red-500">*</span>
@@ -363,13 +396,13 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
 
                 {/* 1.2 학습자 정보 */}
                 <h3 className="text-lg font-bold text-slate-900 border-b pb-2 pt-4 text-center">
-                  {bookingVersion === 'adult' ? '2. 학습 목적 및 수준 정보' : '2. 실제 수강생(자녀) 정보'}
+                  {bookingVersion === 'adult' ? '2. 학습 목적 및 수준 정보' : bookingVersion === 'camp' ? '2. 참가 학생 정보' : '2. 실제 수강생(자녀) 정보'}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      {bookingVersion === 'adult' ? '수강생 이름 (자동 동기화)' : '실제 수강생(자녀) 이름'} <span className="text-red-500">*</span>
+                      {bookingVersion === 'adult' ? '수강생 이름 (자동 동기화)' : bookingVersion === 'camp' ? '참가 학생 이름' : '실제 수강생(자녀) 이름'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -377,7 +410,7 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
                       value={studentName}
                       disabled={bookingVersion === 'adult' || relationship === '본인'}
                       onChange={(e) => setStudentName(e.target.value)}
-                      placeholder={bookingVersion === 'adult' ? '수강생 본인 이름으로 자동 동기화됨' : '수강생(자녀) 이름을 적어주세요'}
+                      placeholder={bookingVersion === 'adult' ? '수강생 본인 이름으로 자동 동기화됨' : bookingVersion === 'camp' ? '캠프/유학 참가 학생 성함을 적어주세요' : '수강생(자녀) 이름을 적어주세요'}
                       className={`w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
                         (bookingVersion === 'adult' || relationship === '본인') ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''
                       }`}
@@ -386,14 +419,14 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      {bookingVersion === 'adult' ? '수강생 연령 구분' : '자녀 연령/학년'} <span className="text-red-500">*</span>
+                      {bookingVersion === 'adult' ? '수강생 연령 구분' : bookingVersion === 'camp' ? '참가 학생 연령/학년' : '자녀 연령/학년'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={studentAge}
                       onChange={(e) => setStudentAge(e.target.value)}
-                      placeholder={bookingVersion === 'adult' ? '예: 20대 대학생, 30대 회사원, 50대 등' : '예: 7세, 초등 3학년, 중등 1학년'}
+                      placeholder={bookingVersion === 'adult' ? '예: 20대 대학생, 30대 회사원, 50대 등' : bookingVersion === 'camp' ? '예: 초등 5학년, 중등 2학년 등' : '예: 7세, 초등 3학년, 중등 1학년'}
                       className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
@@ -402,14 +435,14 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      {bookingVersion === 'adult' ? '현재 직업/상태' : '자녀 학년 또는 학교'} <span className="text-red-500">*</span>
+                      {bookingVersion === 'adult' ? '현재 직업/상태' : bookingVersion === 'camp' ? '현재 재학 중인 학교' : '자녀 학년 또는 학교'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={gradeOrJob}
                       onChange={(e) => setGradeOrJob(e.target.value)}
-                      placeholder={bookingVersion === 'adult' ? '예: 회사원, 취업준비생, 주부, 대학생 등' : '예: 유아, 초등 2학년, 중등 3학년 등'}
+                      placeholder={bookingVersion === 'adult' ? '예: 회사원, 취업준비생, 주부, 대학생 등' : bookingVersion === 'camp' ? '예: 대치초등학교, 서현중학교 등' : '예: 유아, 초등 2학년, 중등 3학년 등'}
                       className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                     />
                   </div>
@@ -517,6 +550,44 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
                     <div className="mt-3 p-3 text-xs text-blue-800 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-2 font-semibold">
                       <Info size={16} />
                       <span>영어 회화수업은 화상수업으로 진행됩니다. (방문 회화 불가)</span>
+                    </div>
+                  )}
+
+                  {/* Camp Informational Card */}
+                  {bookingVersion === 'camp' && (
+                    <div className="mt-4 p-4 bg-orange-50 rounded-2xl border border-orange-100 space-y-3">
+                      <h4 className="text-xs font-bold text-orange-950 flex items-center gap-1.5">
+                        <span>✈️</span> 2027 겨울 해외 캠프 프로그램 안내 (현재 모집 중)
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-700">
+                        <div className="p-3 bg-white rounded-xl border border-orange-100/50">
+                          <div className="font-bold text-orange-600 mb-1 flex items-center justify-between">
+                            <span>🇨🇦 캐나다 겨울 스쿨링 캠프</span>
+                            <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-semibold">모집중</span>
+                          </div>
+                          <ul className="space-y-1 text-[10px] text-slate-500 list-disc list-inside">
+                            <li>명문 오카나간 공립교육청 스쿨링</li>
+                            <li>현지 캐나디안 가정 엄선 홈스테이</li>
+                            <li>3주 / 7주 몰입형 영어 집중 코스</li>
+                            <li>주말 스페셜 액티비티 & 문화 체험</li>
+                          </ul>
+                        </div>
+                        <div className="p-3 bg-white rounded-xl border border-orange-100/50">
+                          <div className="font-bold text-teal-600 mb-1 flex items-center justify-between">
+                            <span>🇳🇿 뉴질랜드 겨울 스쿨링 캠프</span>
+                            <span className="text-[10px] bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded-full font-semibold">모집중</span>
+                          </div>
+                          <ul className="space-y-1 text-[10px] text-slate-500 list-disc list-inside">
+                            <li>오클랜드 우수 공립학교 100% 스쿨링</li>
+                            <li>가장 안전하고 청정한 영어 몰입 환경</li>
+                            <li>현지 또래 버디 매칭 시스템</li>
+                            <li>전문 인솔교사 동행으로 24시간 안심 관리</li>
+                          </ul>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-slate-400 text-center leading-normal">
+                        ※ 올해는 캐나다와 뉴질랜드만 진행되며, 영국 프로그램 및 여름 캠프는 마감되어 진행되지 않습니다.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -696,24 +767,24 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      수업을 신청하는 이유 (구체적 계기)
+                      {bookingVersion === 'camp' ? '캠프/유학을 결정 및 고민하시는 이유' : '수업을 신청하는 이유 (구체적 계기)'}
                     </label>
                     <textarea
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      placeholder="예: 영어 성적이 안 올라서, 회화를 처음 배워서"
+                      placeholder={bookingVersion === 'camp' ? '예: 방학을 활용한 단기 영어몰입 필요, 자녀 자립심 함양' : '예: 영어 성적이 안 올라서, 회화를 처음 배워서'}
                       className="w-full h-24 px-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent resize-none"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      이번 과외를 통한 구체적인 목표
+                      {bookingVersion === 'camp' ? '상담을 통해 알고 싶으신 구체적 목표' : '이번 과외를 통한 구체적인 목표'}
                     </label>
                     <textarea
                       value={goals}
                       onChange={(e) => setGoals(e.target.value)}
-                      placeholder="예: 3개월 내 일상 질문 주고받기, 내신 1등급"
+                      placeholder={bookingVersion === 'camp' ? '예: 홈스테이 안전성 여부, 스쿨링 프로그램 세부 일정' : '예: 3개월 내 일상 질문 주고받기, 내신 1등급'}
                       className="w-full h-24 px-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent resize-none"
                     />
                   </div>
@@ -722,20 +793,35 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      희망 수업 횟수 (주당 횟수)
+                      {bookingVersion === 'camp' ? '유학/캠프 희망 시기' : '희망 수업 횟수 (주당 횟수)'}
                     </label>
-                    <select
-                      value={preferredSessionsCount}
-                      onChange={(e) => setPreferredSessionsCount(e.target.value)}
-                      className="w-full px-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white font-medium text-slate-700"
-                    >
-                      <option value="주 1회 (60분)">주 1회 (60분)</option>
-                      <option value="주 1회 (90분)">주 1회 (90분)</option>
-                      <option value="주 2회 (60분)">주 2회 (60분) [가장 선호]</option>
-                      <option value="주 2회 (90분)">주 2회 (90분)</option>
-                      <option value="주 3회 (60분)">주 3회 (60분)</option>
-                      <option value="기타 조율">기타 상세 조율 필요</option>
-                    </select>
+                    {bookingVersion === 'camp' ? (
+                      <select
+                        value={preferredSessionsCount}
+                        onChange={(e) => setPreferredSessionsCount(e.target.value)}
+                        className="w-full px-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white font-medium text-slate-700"
+                      >
+                        <option value="2027년 겨울 캠프">2027년 겨울 캠프 참가 희망</option>
+                        <option value="2027년 여름 캠프">2027년 여름 캠프 대기 신청</option>
+                        <option value="1년 내 조기유학">1년 내 조기유학 및 교환학생</option>
+                        <option value="2년 내 조기유학">2년 내 조기유학 및 정규유학</option>
+                        <option value="단기 연수">방학 단기 연수 및 영어 캠프</option>
+                        <option value="미정/상담후결정">아직 미정 (상담 후 결정)</option>
+                      </select>
+                    ) : (
+                      <select
+                        value={preferredSessionsCount}
+                        onChange={(e) => setPreferredSessionsCount(e.target.value)}
+                        className="w-full px-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white font-medium text-slate-700"
+                      >
+                        <option value="주 1회 (60분)">주 1회 (60분)</option>
+                        <option value="주 1회 (90분)">주 1회 (90분)</option>
+                        <option value="주 2회 (60분)">주 2회 (60분) [가장 선호]</option>
+                        <option value="주 2회 (90분)">주 2회 (90분)</option>
+                        <option value="주 3회 (60분)">주 3회 (60분)</option>
+                        <option value="기타 조율">기타 상세 조율 필요</option>
+                      </select>
+                    )}
                   </div>
 
                   <div>
@@ -760,6 +846,58 @@ export default function BookingForm({ currentUser, onBookingSuccess, onNavigateT
                     </div>
                   </div>
                 </div>
+
+                {/* Camp specific questions */}
+                {bookingVersion === 'camp' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-orange-50/50 rounded-2xl border border-orange-100/60 animate-in fade-in duration-200">
+                    <div>
+                      <label className="block text-xs font-bold text-orange-950 mb-1.5 flex items-center gap-1">
+                        <span>✈️</span> 해외캠프 경험 유무 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['없음', '있음'].map((exp) => (
+                          <button
+                            key={exp}
+                            type="button"
+                            onClick={() => setCampExperience(exp)}
+                            className={`py-2 text-xs font-semibold rounded-xl border transition-all ${
+                              campExperience === exp || (exp === '있음' && campExperience !== '없음')
+                                ? 'border-orange-500 bg-orange-500 text-white shadow-xs font-bold'
+                                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            {exp === '있음' ? '있음' : '없음'}
+                          </button>
+                        ))}
+                      </div>
+                      {campExperience !== '없음' && (
+                        <input
+                          type="text"
+                          value={campExperience === '있음' ? '' : campExperience}
+                          onChange={(e) => setCampExperience(e.target.value || '있음')}
+                          placeholder="경험이 있다면 국가나 프로그램명을 적어주세요 (선택)"
+                          className="w-full mt-2 px-3 py-1.5 text-[11px] border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-orange-500 focus:border-transparent bg-white text-slate-700"
+                        />
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-orange-950 mb-1.5 flex items-center gap-1">
+                        <span>🌏</span> 희망하시는 캠프 국가/종류 <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={preferredCampLocation}
+                        onChange={(e) => setPreferredCampLocation(e.target.value)}
+                        className="w-full px-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white font-medium text-slate-700"
+                      >
+                        <option value="캐나다 겨울 스쿨링 캠프">🇨🇦 캐나다 겨울 스쿨링 캠프</option>
+                        <option value="뉴질랜드 겨울 스쿨링 캠프">🇳🇿 뉴질랜드 겨울 스쿨링 캠프</option>
+                        <option value="캐나다/뉴질랜드 둘 다 상담 희망">🌎 둘 다 비교 상담 희망</option>
+                        <option value="정규 유학/컨설팅 희망">🎓 정규 조기유학 컨설팅</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
