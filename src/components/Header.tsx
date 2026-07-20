@@ -28,7 +28,6 @@ export default function Header({
     { label: '수업 방식', sectionId: 'comparison-section' },
     { label: '선생님 배정', sectionId: 'matching-section' },
     { label: '무료 체험수업', sectionId: 'matching-section' }, // Redirect/scroll appropriately
-    { label: '선생님 소개', sectionId: 'teachers-section' },
     { label: '수업 후기', sectionId: 'reviews-section' }
   ];
 

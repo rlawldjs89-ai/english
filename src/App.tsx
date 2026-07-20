@@ -178,69 +178,7 @@ export default function App() {
             {/* SECTION 11. 브랜드 소개 (교육철학) */}
             <BrandIntro />
 
-            {/* Dynamic Teachers Explorer list inside Home */}
-            <section id="teachers-section" className="py-16 md:py-24 bg-slate-900 text-white">
-              <div className="max-w-7xl mx-auto px-4 space-y-12">
-                <div className="text-center space-y-3">
-                  <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-bold rounded-full">
-                    Our Elite Educators
-                  </span>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight keep-all break-keep">영어 전문 스타 강사진 소개</h2>
-                  <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto keep-all break-keep">
-                    개인 정보 보호 기준 내에서 선생님들의 약력과 특화 지도 전문 분야를 정직하게 소개합니다.
-                  </p>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {mockTeachers.map((teacher) => (
-                    <div key={teacher.id} className="bg-slate-800/60 border border-slate-800 rounded-3xl p-6 space-y-4 flex flex-col justify-between hover:border-slate-700/80 transition-all">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                          <img
-                            src={teacher.imageUrl}
-                            alt={teacher.name}
-                            referrerPolicy="no-referrer"
-                            className="w-16 h-16 rounded-full object-cover border-2 border-slate-700 shadow-md"
-                          />
-                          <div>
-                            <span className="text-[10px] bg-blue-900/40 text-blue-300 border border-blue-900/50 px-2 py-0.5 rounded-md font-bold">
-                              {teacher.gender === '남' ? 'Male' : 'Female'} Tutor
-                            </span>
-                            <h4 className="text-lg font-extrabold text-white mt-1">{teacher.name} 선생님</h4>
-                            <p className="text-[11px] text-slate-400 font-mono mt-0.5">{teacher.classTypes.join(' · ')} 가능</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 pt-2 border-t border-slate-800 text-xs text-slate-300">
-                          <p><span className="text-slate-500 inline-block w-16">전문 분야</span> 
-                            <strong className="text-slate-100">{teacher.specialty.join(', ')}</strong>
-                          </p>
-                          <p><span className="text-slate-500 inline-block w-16">수업 스타일</span> 
-                            <span className="text-slate-300">{teacher.style}</span>
-                          </p>
-                          <p><span className="text-slate-500 inline-block w-16">약력/경력</span> 
-                            <span className="text-slate-400 text-[11px] block mt-0.5 pl-2 border-l border-slate-800">{teacher.experience}</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-slate-800/50 flex justify-between items-center text-[10px] text-slate-500">
-                        <span>보증 자격: {teacher.certs[0] || '영어 교육 전담 정교사 자격'}</span>
-                        <button
-                          onClick={() => {
-                            setActiveView('booking');
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          className="px-3 py-1.5 bg-blue-900 hover:bg-blue-800 text-blue-200 hover:text-white font-bold rounded-lg transition-all"
-                        >
-                          선생님 지정 상담 신청
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
           </div>
         )}
 
@@ -307,51 +245,7 @@ export default function App() {
         </div>
       </footer>
 
-      {/* 4. Floating Demo Role Quick Switcher Panel for Testing Evaluation */}
-      <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 bg-white/95 backdrop-blur-xs p-4 rounded-2xl border border-slate-200/80 shadow-2xl space-y-2.5 max-w-xs text-xs">
-        <div className="flex items-center gap-1.5 border-b pb-1.5 font-bold text-slate-800">
-          <Shield size={14} className="text-red-500 animate-pulse" />
-          <span>심사용 초간편 역할 퀵스위치</span>
-        </div>
-        
-        <p className="text-[10px] text-slate-500 leading-normal">
-          회원가입 없이 즉석에서 역할을 바꿔가며 회원 마이페이지 및 관리자 통제 대시보드를 테스트하실 수 있습니다.
-        </p>
 
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
-            onClick={() => handleQuickRoleSwitch('parent')}
-            className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-[10px] font-bold text-slate-700 text-center transition-all"
-          >
-            학부모 회원
-          </button>
-          <button
-            onClick={() => handleQuickRoleSwitch('student')}
-            className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-[10px] font-bold text-slate-700 text-center transition-all"
-          >
-            초중고생 회원
-          </button>
-          <button
-            onClick={() => handleQuickRoleSwitch('adult')}
-            className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-[10px] font-bold text-slate-700 text-center transition-all"
-          >
-            대학생·성인 회원
-          </button>
-          <button
-            onClick={() => handleQuickRoleSwitch('admin')}
-            className="p-1.5 bg-red-900 hover:bg-red-950 rounded-lg text-[10px] font-bold text-white text-center transition-all shadow-sm"
-          >
-            관리자 대시보드
-          </button>
-        </div>
-
-        {user && (
-          <div className="pt-1 text-[10px] text-slate-500 flex justify-between items-center border-t border-slate-100 mt-1">
-            <span>접속: <strong className="text-slate-800">{user.name} ({user.role})</strong></span>
-            <button onClick={handleLogout} className="text-red-500 hover:underline">로그아웃</button>
-          </div>
-        )}
-      </div>
 
       {/* 5. Mobile Bottom Fixed Floating Navigation panel */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 p-2.5 grid grid-cols-3 gap-2 z-30 shadow-2xl shadow-black/20">
