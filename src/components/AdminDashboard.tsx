@@ -1,0 +1,667 @@
+import React, { useState, useEffect } from 'react';
+import { Booking, BookingStatus, Teacher } from '../types';
+import { getBookings, saveBookings } from '../lib/storage';
+import { mockTeachers } from '../data/teachers';
+import { 
+  Users, CheckCircle2, Clock, Eye, Edit3, Trash2, Search, Filter, 
+  Download, Calendar, Plus, RefreshCw, Bookmark, Award, HelpCircle, FileSpreadsheet, MapPin
+} from 'lucide-react';
+
+export default function AdminDashboard() {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  
+  // Search & Filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [courseFilter, setCourseFilter] = useState<string>('all');
+  const [classTypeFilter, setClassTypeFilter] = useState<string>('all');
+  const [regionFilter, setRegionFilter] = useState<string>('');
+  const [ageGroupFilter, setAgeGroupFilter] = useState<string>('all');
+
+  // Selected Booking details modal
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  
+  // Edit variables
+  const [editStatus, setEditStatus] = useState<BookingStatus>('신청 접수');
+  const [editTeacherId, setEditTeacherId] = useState<string>('');
+  const [editTrialDate, setEditTrialDate] = useState('');
+  const [editTrialTime, setEditTrialTime] = useState('');
+  const [editAdminMemo, setEditAdminMemo] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Stats calculation
+  const [stats, setStats] = useState({
+    total: 0,
+    new: 0,
+    waiting: 0,
+    matching: 0,
+    trial: 0,
+    completed: 0,
+    canceled: 0,
+  });
+
+  const loadData = () => {
+    const list = getBookings();
+    setBookings(list);
+    calculateStats(list);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Filter Logic
+  useEffect(() => {
+    let result = [...bookings];
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(
+        (b) =>
+          b.applicantName.toLowerCase().includes(term) ||
+          b.studentName.toLowerCase().includes(term) ||
+          b.contact.includes(term)
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      result = result.filter((b) => b.status === statusFilter);
+    }
+
+    if (courseFilter !== 'all') {
+      result = result.filter((b) => b.selectedCourse === courseFilter);
+    }
+
+    if (classTypeFilter !== 'all') {
+      result = result.filter((b) => b.classType === classTypeFilter);
+    }
+
+    if (regionFilter) {
+      result = result.filter((b) => b.region.includes(regionFilter));
+    }
+
+    if (ageGroupFilter !== 'all') {
+      result = result.filter((b) => {
+        const age = parseInt(b.studentAge) || 0;
+        if (ageGroupFilter === '유아·초등') return age > 0 && age <= 13;
+        if (ageGroupFilter === '중고등') return age >= 14 && age <= 19;
+        if (ageGroupFilter === '성인') return age >= 20 && age < 60;
+        if (ageGroupFilter === '시니어') return age >= 60;
+        return true;
+      });
+    }
+
+    setFilteredBookings(result);
+  }, [bookings, searchTerm, statusFilter, courseFilter, classTypeFilter, regionFilter, ageGroupFilter]);
+
+  const calculateStats = (list: Booking[]) => {
+    const s = {
+      total: list.length,
+      new: list.filter((b) => b.status === '신청 접수').length,
+      waiting: list.filter((b) => b.status === '상담 예정').length,
+      matching: list.filter((b) => b.status === '선생님 확인 중').length,
+      trial: list.filter((b) => b.status === '체험수업 예정').length,
+      completed: list.filter((b) => b.status === '정규수업 진행').length,
+      canceled: list.filter((b) => b.status === '취소').length,
+    };
+    setStats(s);
+  };
+
+  const handleOpenDetails = (b: Booking) => {
+    setSelectedBooking(b);
+    setEditStatus(b.status);
+    setEditTeacherId(b.teacherId || '');
+    setEditTrialDate(b.trialDate || '');
+    setEditTrialTime(b.trialTime || '');
+    setEditAdminMemo(b.adminMemo || '');
+  };
+
+  const handleSaveDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBooking) return;
+
+    setIsSaving(true);
+    const updated = bookings.map((b) => {
+      if (b.id === selectedBooking.id) {
+        return {
+          ...b,
+          status: editStatus,
+          teacherId: editTeacherId || undefined,
+          trialDate: editTrialDate || undefined,
+          trialTime: editTrialTime || undefined,
+          adminMemo: editAdminMemo || undefined,
+        };
+      }
+      return b;
+    });
+
+    saveBookings(updated);
+    setBookings(updated);
+    calculateStats(updated);
+    
+    // Alert & Close
+    alert('상담 진행 정보가 정상 반영되었습니다.');
+    setSelectedBooking(null);
+    setIsSaving(false);
+  };
+
+  const handleDeleteBooking = (id: string) => {
+    if (confirm('이 상담 내역을 완전히 데이터베이스에서 삭제하시겠습니까?')) {
+      const updated = bookings.filter((b) => b.id !== id);
+      saveBookings(updated);
+      setBookings(updated);
+      calculateStats(updated);
+      if (selectedBooking?.id === id) {
+        setSelectedBooking(null);
+      }
+    }
+  };
+
+  // True CSV exporter
+  const downloadCSV = () => {
+    // Column Headers in Korean
+    const headers = [
+      '신청일', '신청자명', '관계', '수강생명', '나이/학년', '직업', '거주지', '희망과정', '수업방식', 
+      '현재영어수준', '상담희망일', '시간대', '상담사유', '공부목표', '선생님선호', '상담상태', '체험예정일', '배정선생님ID', '관리자메모'
+    ];
+
+    const rows = filteredBookings.map((b) => [
+      b.createdAt.slice(0, 10),
+      b.applicantName,
+      b.relationship,
+      b.studentName,
+      b.studentAge,
+      b.gradeOrJob,
+      b.region.replace(/,/g, ' '), // avoid splitting cell
+      b.selectedCourse,
+      b.classType,
+      b.currentLevel,
+      b.preferredDate,
+      b.preferredTimeSlot,
+      (b.reason || '').replace(/[\r\n,]/g, ' '),
+      (b.goals || '').replace(/[\r\n,]/g, ' '),
+      b.preferredTeacherGender,
+      b.status,
+      b.trialDate ? `${b.trialDate} ${b.trialTime || ''}` : '',
+      b.teacherId || '',
+      (b.adminMemo || '').replace(/[\r\n,]/g, ' ')
+    ]);
+
+    const csvContent = '\uFEFF' // UTF-8 BOM to prevent MS Excel Korean character encoding corruption!
+      + [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `영어과외_상담신청내역_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const coursesList = [
+    '유아 영어', '초등 영어', '중등 영어', '고등 영어', '영어 회화', '성인 영어', '시니어 영어', 
+    '토익', '토플', '토익스피킹', '오픽', '아이엘츠', '기타 시험 대비'
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      {/* Admin Title Banner */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 p-6 md:p-8 rounded-3xl text-white shadow-lg">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Live Administration Console
+            </span>
+          </div>
+          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">상담 및 예약 관리 대시보드</h2>
+          <p className="text-xs text-slate-400">
+            신규 무료 체험수업 예약 리스트 분석, 스케줄 지정, 상태 변경 및 선생님 매칭을 주관하는 통합 통제 센터입니다.
+          </p>
+        </div>
+        
+        <div className="flex gap-2.5">
+          <button
+            onClick={loadData}
+            className="p-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold"
+          >
+            <RefreshCw size={14} /> 새로고침
+          </button>
+          
+          <button
+            onClick={downloadCSV}
+            className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold shadow-md shadow-orange-500/10"
+          >
+            <FileSpreadsheet size={15} /> 엑셀 다운로드 (CSV)
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Summary Bento Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        {[
+          { label: '전체 상담', count: stats.total, color: 'border-slate-200 bg-white text-slate-900', desc: '누적 데이터' },
+          { label: '신규 접수', count: stats.new, color: 'border-blue-200 bg-blue-50/50 text-blue-900', desc: '검토 필요' },
+          { label: '상담 예정', count: stats.waiting, color: 'border-yellow-200 bg-yellow-50/50 text-yellow-900', desc: '해피콜 약속' },
+          { label: '강사 확인', count: stats.matching, color: 'border-purple-200 bg-purple-50/50 text-purple-900', desc: '강사 조율' },
+          { label: '체험 수업', count: stats.trial, color: 'border-indigo-200 bg-indigo-50/50 text-indigo-900', desc: '시범 수업일' },
+          { label: '정규 전환', count: stats.completed, color: 'border-green-200 bg-green-50/50 text-green-900', desc: '과외 진행 중' },
+          { label: '취소/보류', count: stats.canceled, color: 'border-red-200 bg-red-50/50 text-red-700', desc: '진행 제외' },
+        ].map((item, idx) => (
+          <div key={idx} className={`border p-4 rounded-2xl flex flex-col justify-between ${item.color} shadow-xs`}>
+            <span className="text-[11px] font-bold opacity-80">{item.label}</span>
+            <div className="flex justify-between items-baseline mt-2">
+              <span className="text-2xl font-extrabold">{item.count}</span>
+              <span className="text-[9px] font-medium opacity-60">{item.desc}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter and Query Console */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-4">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 pb-2 border-b border-slate-50">
+          <Filter size={14} className="text-blue-900" />
+          상세 필터 검색
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* Search name or contact */}
+          <div className="lg:col-span-2 relative">
+            <span className="absolute left-3 top-2.5 text-slate-400">
+              <Search size={14} />
+            </span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="신청자, 학생명, 연락처 검색"
+              className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-900 bg-slate-50/30"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-900"
+          >
+            <option value="all">전체 상태 조회</option>
+            <option value="신청 접수">신청 접수</option>
+            <option value="상담 예정">상담 예정</option>
+            <option value="상담 완료">상담 완료</option>
+            <option value="선생님 확인 중">선생님 확인 중</option>
+            <option value="체험수업 예정">체험수업 예정</option>
+            <option value="체험수업 완료">체험수업 완료</option>
+            <option value="정규수업 진행">정규수업 진행</option>
+            <option value="보류">보류</option>
+            <option value="취소">취소</option>
+          </select>
+
+          {/* Course Filter */}
+          <select
+            value={courseFilter}
+            onChange={(e) => setCourseFilter(e.target.value)}
+            className="px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-900"
+          >
+            <option value="all">전체 희망과정</option>
+            {coursesList.map((c, i) => (
+              <option key={i} value={c}>{c}</option>
+            ))}
+          </select>
+
+          {/* Class Type Filter */}
+          <select
+            value={classTypeFilter}
+            onChange={(e) => setClassTypeFilter(e.target.value)}
+            className="px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-900"
+          >
+            <option value="all">수업방식 (전체)</option>
+            <option value="방문수업">방문수업</option>
+            <option value="화상수업">화상수업</option>
+            <option value="방문·화상 모두 상담 희망">방문/화상 모두</option>
+          </select>
+
+          {/* Age Group Filter */}
+          <select
+            value={ageGroupFilter}
+            onChange={(e) => setAgeGroupFilter(e.target.value)}
+            className="px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-900"
+          >
+            <option value="all">연령별 필터 (전체)</option>
+            <option value="유아·초등">유아·초등 (1~13세)</option>
+            <option value="중고등">중고등 (14~19세)</option>
+            <option value="성인">성인 (20~59세)</option>
+            <option value="시니어">시니어 (60세 이상)</option>
+          </select>
+        </div>
+
+        {/* Region query */}
+        <div className="flex gap-2 items-center">
+          <MapPin size={14} className="text-slate-400" />
+          <input
+            type="text"
+            value={regionFilter}
+            onChange={(e) => setRegionFilter(e.target.value)}
+            placeholder="거주 지역 필터링 (예: 서초구, 마포동)"
+            className="w-full max-w-sm px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-900"
+          />
+          {(regionFilter || searchTerm || statusFilter !== 'all' || courseFilter !== 'all' || classTypeFilter !== 'all' || ageGroupFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('all');
+                setCourseFilter('all');
+                setClassTypeFilter('all');
+                setRegionFilter('');
+                setAgeGroupFilter('all');
+              }}
+              className="text-xs font-semibold text-blue-950 hover:underline"
+            >
+              필터 초기화
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Bookings Data Table */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-900 text-slate-300 text-[10px] font-bold uppercase tracking-wider border-b border-slate-800">
+                <th className="px-6 py-4">신청일</th>
+                <th className="px-6 py-4">신청자/수강생</th>
+                <th className="px-6 py-4">구분 / 학년</th>
+                <th className="px-6 py-4">희망 거주지역</th>
+                <th className="px-6 py-4">희망 수업</th>
+                <th className="px-6 py-4">방식</th>
+                <th className="px-6 py-4">희망 상담시간</th>
+                <th className="px-6 py-4">상태</th>
+                <th className="px-6 py-4 text-right">관리</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs">
+              {filteredBookings.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-12 text-slate-400 font-semibold">
+                    조회 조건에 만족하는 상담 신청 내역이 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                filteredBookings.map((b) => {
+                  const statusColors = {
+                    '신청 접수': 'bg-slate-100 text-slate-800',
+                    '상담 예정': 'bg-yellow-50 text-yellow-800',
+                    '상담 완료': 'bg-blue-50 text-blue-800',
+                    '선생님 확인 중': 'bg-purple-50 text-purple-800',
+                    '체험수업 예정': 'bg-indigo-50 text-indigo-800',
+                    '체험수업 완료': 'bg-teal-50 text-teal-800',
+                    '정규수업 진행': 'bg-green-50 text-green-800',
+                    '보류': 'bg-slate-100 text-slate-400',
+                    '취소': 'bg-red-50 text-red-500',
+                  }[b.status];
+
+                  return (
+                    <tr key={b.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 text-slate-400 font-medium">
+                        {b.createdAt.slice(0, 10)}
+                      </td>
+                      <td className="px-6 py-4 font-bold text-slate-900">
+                        {b.applicantName} <span className="text-[10px] text-slate-400">({b.relationship})</span>
+                        <div className="text-[10px] font-normal text-slate-500 mt-0.5">
+                          학생: {b.studentName} ({b.studentAge}세)
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 font-semibold">
+                        {b.gradeOrJob}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {b.region}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="bg-slate-100 px-2 py-0.5 rounded-sm font-semibold text-slate-800">
+                          {b.selectedCourse}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 font-medium">
+                        {b.classType}
+                      </td>
+                      <td className="px-6 py-4 text-slate-700 font-semibold">
+                        {b.preferredDate}
+                        <div className="text-[10px] text-slate-400 font-normal">{b.preferredTimeSlot}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-md ${statusColors}`}>
+                          {b.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenDetails(b)}
+                            className="p-1.5 text-slate-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors"
+                            title="상담 상세 및 배정"
+                          >
+                            <Edit3 size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBooking(b.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            title="삭제"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Details & Assignment Modal */}
+      {selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200 my-8">
+            {/* Header */}
+            <div className="px-6 py-5 bg-slate-900 text-white flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold">상담 처리 및 과외 매칭 센터</h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  학생 ID: {selectedBooking.id} | 등록일: {selectedBooking.createdAt.replace('T', ' ').slice(0, 16)}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="text-slate-400 hover:text-white transition-colors text-sm font-bold bg-slate-800 px-3 py-1.5 rounded-lg"
+              >
+                닫기
+              </button>
+            </div>
+
+            {/* Content Form */}
+            <form onSubmit={handleSaveDetails} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              {/* Part 1: Selected Booking Info Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs text-slate-600">
+                <div className="space-y-1.5">
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">신청자(관계)</span>
+                    <strong className="text-slate-800">{selectedBooking.applicantName} ({selectedBooking.relationship})</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">연락처</span>
+                    <strong className="text-slate-800">{selectedBooking.contact}</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">실수강생(나이)</span>
+                    <strong className="text-slate-800">{selectedBooking.studentName} ({selectedBooking.studentAge}세)</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">학년/직업</span>
+                    <strong className="text-slate-800">{selectedBooking.gradeOrJob}</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">거주지역</span>
+                    <strong className="text-slate-800">{selectedBooking.region}</strong>
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">희망 수업 과정</span>
+                    <strong className="text-slate-800">{selectedBooking.selectedCourse}</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">수업 방식</span>
+                    <strong className="text-slate-800">{selectedBooking.classType}</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">희망 일정</span>
+                    <strong className="text-slate-800">{selectedBooking.preferredDate} ({selectedBooking.preferredTimeSlot})</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">현재 수준</span>
+                    <strong className="text-slate-800">{selectedBooking.currentLevel}</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 inline-block w-24">강사 선호도</span>
+                    <strong className="text-slate-800">{selectedBooking.preferredTeacherGender}</strong>
+                  </p>
+                </div>
+
+                <div className="md:col-span-2 pt-2 border-t border-slate-200/60 space-y-1">
+                  <p className="text-slate-500">
+                    <span className="font-bold text-slate-700">신청 사유:</span> {selectedBooking.reason || '입력 없음'}
+                  </p>
+                  <p className="text-slate-500">
+                    <span className="font-bold text-slate-700">목표:</span> {selectedBooking.goals || '입력 없음'}
+                  </p>
+                  {selectedBooking.examSchedule && (
+                    <p className="text-orange-700 font-semibold bg-orange-50 p-1.5 rounded">
+                      <span>목표 점수 및 시험일정:</span> {selectedBooking.examSchedule}
+                    </p>
+                  )}
+                  {selectedBooking.memo && (
+                    <p className="text-slate-500">
+                      <span className="font-bold text-slate-700 font-mono">기타 요청사항:</span> {selectedBooking.memo}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Part 2: Interactive updates */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-slate-900 border-b pb-2">상담 업데이트 및 매칭 실행</h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Status update */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">상담 진행 상태 변경</label>
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as BookingStatus)}
+                      className="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-medium text-slate-700 focus:ring-2 focus:ring-blue-900"
+                    >
+                      <option value="신청 접수">신청 접수</option>
+                      <option value="상담 예정">상담 예정</option>
+                      <option value="상담 완료">상담 완료</option>
+                      <option value="선생님 확인 중">선생님 확인 중</option>
+                      <option value="체험수업 예정">체험수업 예정</option>
+                      <option value="체험수업 완료">체험수업 완료</option>
+                      <option value="정규수업 진행">정규수업 진행</option>
+                      <option value="보류">보류</option>
+                      <option value="취소">취소</option>
+                    </select>
+                  </div>
+
+                  {/* Teacher Assignment */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">담당 전문 선생님 배정</label>
+                    <select
+                      value={editTeacherId}
+                      onChange={(e) => setEditTeacherId(e.target.value)}
+                      className="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-white font-medium text-slate-700 focus:ring-2 focus:ring-blue-900"
+                    >
+                      <option value="">-- 미배정 (선생님 매칭 중) --</option>
+                      {mockTeachers.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name} 선생님 ({t.gender === '남' ? '남성' : '여성'} / {t.specialty[0]} / {t.classTypes.join(',')})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Trial scheduling */}
+                <div className="p-4 bg-indigo-50/40 border border-indigo-100 rounded-2xl space-y-3">
+                  <h5 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                    <Calendar size={14} />
+                    무료 체험수업 일정 등록
+                  </h5>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-slate-500 mb-1">체험수업 예정일자</label>
+                      <input
+                        type="date"
+                        value={editTrialDate}
+                        onChange={(e) => setEditTrialDate(e.target.value)}
+                        className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-500 mb-1">체험수업 시간</label>
+                      <input
+                        type="time"
+                        value={editTrialTime}
+                        onChange={(e) => setEditTrialTime(e.target.value)}
+                        className="w-full p-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Admin internal memo */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    관리자 전용 내부 메모 <span className="text-[10px] text-slate-400 font-normal">(수강생 마이페이지에 표시되지 않음)</span>
+                  </label>
+                  <textarea
+                    value={editAdminMemo}
+                    onChange={(e) => setEditAdminMemo(e.target.value)}
+                    placeholder="상담 통화 기록, 주수업 목적, 교재 상담 내용 등 내부 운영 특이사항 기재"
+                    className="w-full h-24 p-3 text-xs border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-900 resize-none bg-slate-50/50"
+                  />
+                </div>
+              </div>
+
+              {/* Footer Button panel */}
+              <div className="flex gap-2 justify-end pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBooking(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-6 py-2 text-xs font-bold text-white bg-blue-900 hover:bg-blue-800 rounded-xl transition-all"
+                >
+                  {isSaving ? '저장 중...' : '저장 완료'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

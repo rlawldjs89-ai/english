@@ -1,0 +1,6 @@
+{
+  "name": "OnlyOne English",
+  "description": "유아부터 시니어까지 개인별 학습 목적과 수준에 맞춘 고품격 영어 전문 일대일 방문 및 화상 수업 매칭 홈페이지",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
