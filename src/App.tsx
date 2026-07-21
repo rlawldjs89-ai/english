@@ -42,11 +42,6 @@ export default function App() {
     return currentUser.role === 'admin' ? 'admin' : 'mypage';
   });
 
-  const changeView = (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers') => {
-    setActiveView(view);
-    localStorage.setItem('active_view_v1', view);
-  };
-
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -55,6 +50,30 @@ export default function App() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   // Quick notice on local storage changes
   const [bookingCount, setBookingCount] = useState(0);
+
+  // Server-side real-time sync (PC <-> Mobile sync)
+  const syncBookingsFromServer = async () => {
+    try {
+      const res = await fetch('/api/bookings?t=' + Date.now());
+      if (res.ok) {
+        const serverBookings = await res.json();
+        const localStr = localStorage.getItem('bookings_v1');
+        if (JSON.stringify(serverBookings) !== localStr) {
+          localStorage.setItem('bookings_v1', JSON.stringify(serverBookings));
+          setBookings(serverBookings);
+          setBookingCount(serverBookings.length);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to sync bookings from server:", err);
+    }
+  };
+
+  const changeView = (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers') => {
+    setActiveView(view);
+    localStorage.setItem('active_view_v1', view);
+    syncBookingsFromServer(); // Fetch latest entries immediately on view switch
+  };
 
   useEffect(() => {
     const loadedUser = getCurrentUser();
@@ -68,24 +87,6 @@ export default function App() {
         changeView('mypage');
       }
     }
-
-    // Server-side real-time sync (PC <-> Mobile sync)
-    const syncBookingsFromServer = async () => {
-      try {
-        const res = await fetch('/api/bookings?t=' + Date.now());
-        if (res.ok) {
-          const serverBookings = await res.json();
-          const localStr = localStorage.getItem('bookings_v1');
-          if (JSON.stringify(serverBookings) !== localStr) {
-            localStorage.setItem('bookings_v1', JSON.stringify(serverBookings));
-            setBookings(serverBookings);
-            setBookingCount(serverBookings.length);
-          }
-        }
-      } catch (err) {
-        console.warn("Failed to sync bookings from server:", err);
-      }
-    };
 
     // Run initial sync right away
     syncBookingsFromServer();

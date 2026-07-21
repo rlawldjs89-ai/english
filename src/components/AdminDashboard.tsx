@@ -47,13 +47,28 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   });
 
   const loadData = () => {
-    const list = propBookings || getBookings();
-    setBookings(list);
-    calculateStats(list);
+    fetch('/api/bookings?t=' + Date.now())
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error('Server returned non-ok status');
+      })
+      .then((data) => {
+        setBookings(data);
+        calculateStats(data);
+        if (onBookingsChange) {
+          onBookingsChange(data);
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load server bookings, falling back to local storage:', err);
+        const list = getBookings();
+        setBookings(list);
+        calculateStats(list);
+      });
   };
 
   useEffect(() => {
-    if (propBookings) {
+    if (propBookings && propBookings.length > 0) {
       setBookings(propBookings);
       calculateStats(propBookings);
     } else {
