@@ -9,10 +9,14 @@ export default function CourseTypeComparison() {
   ];
 
   const onlineFeatures = [
-    '지방, 전라도, 제주도, 해외 등 전국 어디서나 대치동 톱클래스 선생님과 매칭',
-    '퇴근 후 또는 야간에 학원이나 외부 이동 시간 낭비 없이 수강 원하는 직장인',
-    '교통 체증이나 날씨 상관없이 가장 쾌적하게 안방에서 수강할 때',
-    '영어 회화처럼 다채로운 미디어 링크 공유와 입 스피킹 교정이 중점인 과외'
+    '이동 부담 없이 수업이 끝나자마자 바로 복습이나 휴식을 원하는 학생',
+    '지역 상관없이 수준에 딱 맞는 분야별 전국의 우수 전문 선생님 매칭을 원할 때',
+    '화면 공유와 스마트 전자칠판 활용으로 실시간 입체적 이해를 높이고 싶은 경우',
+    '수강생 개인의 정확한 성취 수준과 진도 조절에 맞춤화된 1:1 케어가 필요할 때',
+    '교안 전달과 피드백 리포트 저장 등 수업 기록 및 복습 자료 관리를 선호할 때',
+    '익숙하고 편안한 내 방 책상에서 긴장 없이 집중하고 빠른 적응을 원하는 수강생',
+    '주말, 늦은 저녁 등 원하는 시간대로 비교적 유연하게 수업 일정을 조율하고 싶을 때',
+    '교통비나 불필요한 이동 시간을 원천 차단하여 순수 학습 자체에 몰입하고 싶을 때'
   ];
 
   return (
@@ -80,7 +84,7 @@ export default function CourseTypeComparison() {
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              최첨단 공유 화이트보드와 동영상 교안, 실시간 마우스 메모리 등을 이용해 시간 낭비를 0%로 단축한 차세대 일대일 과외입니다. 전국 대치동 유학파 교사진을 자유롭게 골라 수업을 이어나갈 수 있습니다.
+              시간과 공간의 제약 없이 검증된 전국 탑클래스 선생님과 함께하는 최고 효율의 1:1 온라인 맞춤 수업입니다. 학부모와 학생 모두가 깊이 만족하는 차별화된 핵심 혜택을 전해드립니다.
             </p>
 
             <div className="space-y-3 pt-2">
@@ -98,18 +102,6 @@ export default function CourseTypeComparison() {
             </div>
           </div>
 
-        </div>
-
-        {/* Warning callout for class rules */}
-        <div className="p-4 bg-orange-50 border border-orange-100 rounded-2xl flex items-start gap-3 text-xs text-orange-950 leading-relaxed">
-          <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="font-bold">반드시 지켜지는 매칭 운영 원칙:</p>
-            <p className="mt-0.5 text-slate-700">
-              초·중·고 영어 교과과정(내신, 수능) 수업은 방문수업과 화상수업 모두 수강생 희망에 맞춰 선택 가능합니다. 
-              다만 <strong className="text-blue-900">영어 회화수업은 스마트한 소리 전달과 학습 효율 극대화를 위해 오직 화상수업으로만 엄격히 제한 진행</strong>됩니다.
-            </p>
-          </div>
         </div>
 
       </div>
