@@ -30,16 +30,16 @@ export default function TrialInfo({ onNavigateToBooking }: TrialInfoProps) {
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight keep-all break-keep">
-            상담 안내나 소개글만으로 결정하지 마세요.<br />
+            상담 안내나 소개글만으로<br className="block md:hidden" /> 결정하지 마세요.<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">
-              직접 수업을 경험한 후 선택하세요.
+              직접 수업을 경험한 후<br className="block md:hidden" /> 선택하세요.
             </span>
           </h2>
 
           <p className="text-slate-300 text-xs sm:text-sm md:text-base leading-relaxed keep-all break-keep">
-            새로운 과외 선생님을 구하는 것은 매우 중요하면서도 부담스러운 일입니다. 
-            정규 수업 계약부터 다짜고짜 서둘지 마시고, 시범 무료 체험 수업을 부담 없이 먼저 신청해 체험해 보세요. 
-            학습자의 성향, 흥미도, 지식 영역의 틈새를 확실히 뚫어 드립니다.
+            새로운 과외 선생님을 구하는 것은<br className="block sm:hidden" /> 매우 중요하면서도 부담스러운 일입니다.<br className="hidden sm:inline" /> 
+            정규 수업 계약부터 다짜고짜 서둘지 마시고,<br className="block sm:hidden" /> 시범 무료 체험 수업을 부담 없이<br className="block sm:hidden" /> 먼저 신청해 체험해 보세요.<br className="hidden sm:inline" /> 
+            학습자의 성향, 흥미도,<br className="block sm:hidden" /> 지식 영역의 틈새를 확실히 뚫어 드립니다.
           </p>
         </div>
 

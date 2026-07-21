@@ -83,7 +83,7 @@ export default function ReviewsSection() {
             실시간 생생한 수업 후기
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 leading-relaxed keep-all break-keep">
-            성적 향상의 기쁨을 맛본 초중고 학생들의 환호부터, 매주 회화 자신감을 가꿔가시는 시니어 수강생까지, 실제 일대일 명품 영어 수업을 수강 중인 소중한 이야기를 감상하세요.
+            성적 향상의 기쁨을 맛본 초중고 학생들의 환호부터,<br className="block sm:hidden" /> 매주 회화 자신감을 가꿔가시는 시니어 수강생까지,<br className="hidden sm:inline" /> 실제 일대일 명품 영어 수업을 수강 중인<br className="block sm:hidden" /> 소중한 이야기를 감상하세요.
           </p>
 
           <button

@@ -32,12 +32,13 @@ export default function ConversationCourse({ onNavigateToBooking }: Conversation
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight keep-all break-keep">
-            외우기만 했던 영어를<br />
-            <span className="text-blue-900 font-black">직접 말할 수 있는 진짜 영어</span>로 바꿔보세요.
+            외우기만 했던 영어를<br className="block md:hidden" /> <span className="text-blue-900 font-black">직접 말할 수 있는</span><br className="block md:hidden" /> <span className="text-blue-900 font-black">진짜 영어</span>로 바꿔보세요.
           </h2>
 
           <p className="text-xs sm:text-sm md:text-base text-slate-500 leading-relaxed keep-all break-keep">
-            영어 회화수업은 장소의 제약 없이 정해진 요일에 꾸준히 몰입 말하기 연습을 할 수 있도록 <strong className="text-blue-900 font-extrabold">일대일 1:1 온라인 화상 수업</strong>으로 엄격하게 진행됩니다. 언제 어디서나 가장 유능한 스피킹 전문 강사진과 고밀도로 소통하세요.
+            영어 회화수업은 장소의 제약 없이 정해진 요일에<br className="block sm:hidden" /> 꾸준히 몰입 말하기 연습을 할 수 있도록<br />
+            <strong className="text-blue-900 font-extrabold">일대일 1:1 온라인 화상 수업</strong>으로<br className="block sm:hidden" /> 엄격하게 진행됩니다.<br />
+            언제 어디서나 가장 유능한 스피킹 전문 강사진과<br className="block sm:hidden" /> 고밀도로 소통하세요.
           </p>
         </div>
 

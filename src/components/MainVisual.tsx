@@ -164,12 +164,13 @@ export default function MainVisual({
           </h1>
 
           <p className="text-slate-300 text-xs sm:text-sm md:text-base max-w-xl leading-relaxed mx-auto lg:mx-0 keep-all break-keep">
-            유아 영어부터 초·중·고 교과과정, 성인 회화, 토익·토플·오픽까지<br className="hidden md:block" />
-            학습자의 연령과 목표에 맞는 완벽한 영어 전문 선생님을 엄선하여 일대일 연결해 드립니다.
+            유아 영어부터 초·중·고 교과과정,<br className="block sm:hidden" /> 성인 회화, 토익·토플·오픽까지<br className="hidden sm:inline" />
+            학습자의 연령과 목표에 맞는<br className="block sm:hidden" /> 완벽한 영어 전문 선생님을<br className="block sm:hidden" /> 엄선하여 일대일 연결해 드립니다.
           </p>
 
           <div className="text-[11px] sm:text-xs text-slate-400 font-medium text-center lg:text-left keep-all break-keep">
-            ※ 교과수업은 방문·화상 선택 가능 | 영어 회화수업은 화상전용으로 진행됩니다.
+            ※ 교과수업은 방문·화상 선택 가능<br />
+            영어 회화수업은 화상전용으로 진행됩니다.
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2 w-full sm:w-auto justify-center lg:justify-start">

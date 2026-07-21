@@ -38,10 +38,14 @@ export default function Benefits() {
             Why Our 1:1 English Class?
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight keep-all break-keep">
-            영어 수업, 누구에게나 같은 방식일 필요는 없습니다.
+            영어 수업, 누구에게나<br className="block md:hidden" /> 같은 방식일 필요는 없습니다.
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-500 leading-relaxed keep-all break-keep">
-            영어를 배우는 목적은 모두 다릅니다. 학교 시험을 완벽하게 대비해야 하는 초중고 학생, 영어로 자연스럽고 품위 있게 소통하고 싶은 대학생 및 직장인, 영어를 태어나서 처음 흥미로 접하는 유아와 시니어까지, 수강생의 현재 눈높이와 향후 목표에 맞춰 완벽한 학습 솔루션을 제시합니다.
+            영어를 배우는 목적은 모두 다릅니다.<br className="hidden sm:inline" /> 
+            학교 시험을 완벽하게 대비해야 하는<br className="block sm:hidden" /> 초중고 학생,<br className="hidden sm:inline" /> 
+            영어로 자연스럽고 품위 있게 소통하고 싶은<br className="block sm:hidden" /> 대학생 및 직장인,<br className="hidden sm:inline" /> 
+            영어를 태어나서 처음 흥미로 접하는<br className="block sm:hidden" /> 유아와 시니어까지,<br className="hidden sm:inline" /> 
+            수강생의 현재 눈높이와 향후 목표에 맞춰<br className="block sm:hidden" /> 완벽한 학습 솔루션을 제시합니다.
           </p>
         </div>
 
@@ -76,7 +80,9 @@ export default function Benefits() {
         {/* Bottom banner details */}
         <div className="p-6 md:p-8 bg-blue-950 text-white rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-1">
-            <h4 className="text-sm font-bold">오직 단 한 명만을 위해 설계되는 명품 영어 교육</h4>
+            <h4 className="text-sm font-bold keep-all break-keep">
+              오직 단 한 명만을 위해 설계되는<br className="block sm:hidden" /> 명품 영어 교육
+            </h4>
             <p className="text-xs text-slate-400">학습 습관 점검, 전문 전담 피드백, 실시간 학부모 소통 피드백 리포트 기본 제공</p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-slate-300">

@@ -34,13 +34,13 @@ export default function BrandIntro() {
             Our Identity & Philosophy
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight keep-all break-keep">
-            영어가 즐거워지는 기적,<br />
-            일대일 맞춤 교육으로 완성됩니다.
+            영어가 즐거워지는 기적,<br className="block md:hidden" /> 일대일 맞춤 교육으로<br className="block md:hidden" /> 완성됩니다.
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-500 leading-relaxed keep-all break-keep">
-            우리는 단순 주입식 시험 문제를 대행해 주는 파트타임 과외가 아닙니다. 
-            유아기 영어 소리 떼기부터 초등의 독서 흥미, 중고등의 지독한 내신 지필과 서술형 수능 극복, 성인의 비즈니스 생존 회화 및 시니어 어르신들의 은빛 영어 활기까지 
-            <strong> 전담 선생님의 집중 에너지</strong>를 오롯이 한 명에게 쏟아붓는 명문 일대일 학습 파트너입니다.
+            우리는 단순 주입식 시험 문제를 대행해 주는<br className="block sm:hidden" /> 파트타임 과외가 아닙니다.<br className="hidden sm:inline" /> 
+            유아기 영어 소리 떼기부터 초등의 독서 흥미,<br className="block sm:hidden" /> 중고등의 지독한 내신 지필과 서술형 수능 극복,<br className="hidden sm:inline" /> 
+            성인의 비즈니스 생존 회화 및<br className="block sm:hidden" /> 시니어 어르신들의 은빛 영어 활기까지<br className="hidden sm:inline" /> 
+            <strong>전담 선생님의 집중 에너지</strong>를 오롯이 한 명에게<br className="block sm:hidden" /> 쏟아붓는 명문 일대일 학습 파트너입니다.
           </p>
         </div>
 

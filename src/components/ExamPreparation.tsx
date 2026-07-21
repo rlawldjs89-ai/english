@@ -29,11 +29,12 @@ export default function ExamPreparation({ onNavigateToBooking }: ExamPreparation
             Specialized Test Preparation
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight keep-all break-keep">
-            점수가 필요한 영어,<br />
-            시험별 고득점 전략까지 체계적으로 관리합니다.
+            점수가 필요한 영어,<br className="block md:hidden" /> 시험별 고득점 전략까지<br className="block md:hidden" /> 체계적으로 관리합니다.
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed keep-all break-keep">
-            점수가 필요한 시험 영어를 무작정 기출문제만 산더미처럼 풀며 시간을 허비하고 계시지 않나요? <strong className="text-orange-400">일대일 전담 전문 선생님</strong>과 함께라면 가장 단시간 내에 약점 파트를 도려내고 전략적으로 점수 고지를 확보할 수 있습니다.
+            점수가 필요한 시험 영어를 무작정 기출문제만<br className="block sm:hidden" /> 산더미처럼 풀며 시간을 허비하고 계시지 않나요?<br />
+            <span className="block mt-1 sm:mt-2"></span>
+            <strong className="text-orange-400">일대일 전담 전문 선생님</strong>과 함께라면<br className="block sm:hidden" /> 가장 단시간 내에 약점 파트를 도려내고<br className="block sm:hidden" /> 전략적으로 점수 고지를 확보할 수 있습니다.
           </p>
         </div>
 

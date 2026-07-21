@@ -251,38 +251,7 @@ export default function App() {
 
 
 
-      {/* 5. Mobile Bottom Fixed Floating Navigation panel */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 p-2.5 grid grid-cols-3 gap-2 z-30 shadow-2xl shadow-black/20">
-        <button
-          onClick={() => {
-            setContactType('tel');
-            setIsContactModalOpen(true);
-          }}
-          className="flex flex-col items-center justify-center py-1.5 text-slate-700 hover:bg-slate-50 rounded-xl"
-        >
-          <Phone size={18} className="text-blue-900" />
-          <span className="text-[10px] font-extrabold mt-1">전화 상담</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setContactType('kakao');
-            setIsContactModalOpen(true);
-          }}
-          className="flex flex-col items-center justify-center py-1.5 text-slate-700 hover:bg-slate-50 rounded-xl"
-        >
-          <MessageSquare size={18} className="text-yellow-500 fill-yellow-500" />
-          <span className="text-[10px] font-extrabold mt-1">카카오톡 상담</span>
-        </button>
-
-        <button
-          onClick={handleNavigateToBooking}
-          className="flex flex-col items-center justify-center py-1.5 bg-orange-500 text-white rounded-xl shadow-md"
-        >
-          <Calendar size={18} />
-          <span className="text-[10px] font-black mt-1">캠프·유학 상담</span>
-        </button>
-      </div>
+      {/* 5. Mobile Bottom Fixed Floating Navigation panel removed per user request */}
 
       {/* 6. Interaction contact channel detail modal */}
       {isContactModalOpen && (
@@ -353,7 +322,7 @@ export default function App() {
         initial={{ opacity: 0, scale: 0.8, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="fixed right-4 bottom-24 md:right-8 md:bottom-12 z-40 flex flex-col items-end gap-2 group cursor-pointer"
+        className="fixed right-4 bottom-6 md:right-8 md:bottom-12 z-40 flex flex-col items-end gap-2 group cursor-pointer"
         onClick={handleNavigateToBooking}
       >
         {/* Pulsing Highlight Text Bubble */}

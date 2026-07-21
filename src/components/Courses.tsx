@@ -43,7 +43,7 @@ export default function Courses({ onNavigateToBooking }: CoursesProps) {
         '영어유치원 정규 수업 보충 및 예학습 케어',
         '거부감 없는 자연스러운 영어 흥미 형성'
       ],
-      target: '영어와 처음 친구가 되는 5~7세, 영어유치원 적응 및 보완을 원하는 아이'
+      target: <>영어와 처음 친구가 되는 5~7세,<br />영어유치원 적응 및 보완을 원하는 아이</>
     },
     {
       id: 'course-2',
@@ -142,10 +142,10 @@ export default function Courses({ onNavigateToBooking }: CoursesProps) {
             Tailored Courses By Age
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight keep-all break-keep">
-            유아부터 시니어까지, 영어가 필요한 누구나
+            유아부터 시니어까지,<br className="block md:hidden" /> 영어가 필요한 누구나
           </h2>
           <p className="text-xs sm:text-sm md:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed keep-all break-keep">
-            세분화된 생애 주기별 영어 학습 특성에 완전 부합하도록 교재 선정부터 지도 속도까지 100% 개인 맞춤형 수업만으로 꼼꼼히 이끌어 드립니다.
+            세분화된 생애 주기별 영어 학습 특성에<br className="block sm:hidden" /> 완전 부합하도록 교재 선정부터 지도 속도까지<br className="block sm:hidden" /> 100% 개인 맞춤형 수업만으로 꼼꼼히 이끌어 드립니다.
           </p>
         </div>
 
@@ -204,7 +204,7 @@ export default function Courses({ onNavigateToBooking }: CoursesProps) {
             {/* Detail Right graphic CTA */}
             <div className="md:col-span-5 bg-slate-900 text-white p-6 md:p-8 rounded-2xl space-y-6 text-center">
               <span className="text-[10px] font-bold text-orange-400 block tracking-widest uppercase">Target Learners</span>
-              <p className="text-sm font-extrabold leading-snug">
+              <p className="text-sm font-extrabold leading-snug keep-all break-keep">
                 "{courses[selectedTarget].target}"
               </p>
               
@@ -237,7 +237,7 @@ export default function Courses({ onNavigateToBooking }: CoursesProps) {
                 해외 스쿨링 & 조기유학
               </span>
             </div>
-            <h3 className="text-base md:text-lg font-extrabold text-slate-900 tracking-tight">
+            <h3 className="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
               해외 유학 & 시즌 겨울캠프 프로그램 안내
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed keep-all break-keep">
