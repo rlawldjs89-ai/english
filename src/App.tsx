@@ -68,6 +68,34 @@ export default function App() {
         changeView('mypage');
       }
     }
+
+    // Server-side real-time sync (PC <-> Mobile sync)
+    const syncBookingsFromServer = async () => {
+      try {
+        const res = await fetch('/api/bookings');
+        if (res.ok) {
+          const serverBookings = await res.json();
+          const localStr = localStorage.getItem('bookings_v1');
+          if (JSON.stringify(serverBookings) !== localStr) {
+            localStorage.setItem('bookings_v1', JSON.stringify(serverBookings));
+            setBookings(serverBookings);
+            setBookingCount(serverBookings.length);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to sync bookings from server:", err);
+      }
+    };
+
+    // Run initial sync right away
+    syncBookingsFromServer();
+
+    // Set up polling interval every 5 seconds for automatic background synchronization
+    const intervalId = setInterval(syncBookingsFromServer, 5000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   const handleLoginSuccess = (loggedInUser: User) => {

@@ -1,17 +1,14 @@
-import { User, Booking, UserRole } from '../types';
+import express from "express";
+import path from "path";
+import fs from "fs";
+import { createServer as createViteServer } from "vite";
 
-// Default mock admin user
-export const DEFAULT_ADMIN: User = {
-  id: 'admin-user',
-  email: 'admin@english.com',
-  name: '최고관리자',
-  role: 'admin',
-  contact: '010-1234-5678',
-  createdAt: '2026-01-01T00:00:00Z',
-};
+const app = express();
+const PORT = 3000;
+const DATA_FILE = path.join(process.cwd(), 'bookings.json');
 
-// Seed bookings to display on the dashboard initially
-const seedBookings: Booking[] = [
+// Ensure data file exists or seed it
+const seedBookings = [
   {
     id: 'b-1',
     applicantName: '김지현',
@@ -124,65 +121,70 @@ const seedBookings: Booking[] = [
   }
 ];
 
-export function getBookings(): Booking[] {
-  const local = localStorage.getItem('bookings_v1');
-  if (!local) {
-    localStorage.setItem('bookings_v1', JSON.stringify(seedBookings));
-    return seedBookings;
+function getBookings() {
+  if (!fs.existsSync(DATA_FILE)) {
+    try {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(seedBookings, null, 2), 'utf8');
+      return seedBookings;
+    } catch (e) {
+      console.error("Failed to write seed bookings:", e);
+      return seedBookings;
+    }
   }
   try {
-    return JSON.parse(local);
+    const data = fs.readFileSync(DATA_FILE, 'utf8');
+    return JSON.parse(data);
   } catch (e) {
+    console.error("Failed to read bookings file, using seeds:", e);
     return seedBookings;
   }
 }
 
-export function saveBookings(bookings: Booking[]): void {
-  localStorage.setItem('bookings_v1', JSON.stringify(bookings));
-  // Background API POST to sync with server
-  fetch('/api/bookings', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ bookings }),
-  }).catch((e) => {
-    console.warn('Failed to sync booking data to server:', e);
+function saveBookings(bookings: any[]) {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(bookings, null, 2), 'utf8');
+  } catch (e) {
+    console.error("Failed to write bookings file:", e);
+  }
+}
+
+async function startServer() {
+  app.use(express.json({ limit: '10mb' }));
+
+  // API Route: GET /api/bookings
+  app.get("/api/bookings", (req, res) => {
+    res.json(getBookings());
+  });
+
+  // API Route: POST /api/bookings
+  app.post("/api/bookings", (req, res) => {
+    const { bookings } = req.body;
+    if (Array.isArray(bookings)) {
+      saveBookings(bookings);
+      res.json({ success: true, count: bookings.length });
+    } else {
+      res.status(400).json({ error: "Invalid bookings data format" });
+    }
+  });
+
+  // Vite middleware for development
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-export function getUsers(): User[] {
-  const local = localStorage.getItem('users_v1');
-  if (!local) {
-    const initialUsers = [DEFAULT_ADMIN];
-    localStorage.setItem('users_v1', JSON.stringify(initialUsers));
-    return initialUsers;
-  }
-  try {
-    return JSON.parse(local);
-  } catch (e) {
-    return [DEFAULT_ADMIN];
-  }
-}
-
-export function saveUsers(users: User[]): void {
-  localStorage.setItem('users_v1', JSON.stringify(users));
-}
-
-export function getCurrentUser(): User | null {
-  const local = localStorage.getItem('current_user_v1');
-  if (!local) return null;
-  try {
-    return JSON.parse(local);
-  } catch (e) {
-    return null;
-  }
-}
-
-export function setCurrentUser(user: User | null): void {
-  if (user) {
-    localStorage.setItem('current_user_v1', JSON.stringify(user));
-  } else {
-    localStorage.removeItem('current_user_v1');
-  }
-}
+startServer();
