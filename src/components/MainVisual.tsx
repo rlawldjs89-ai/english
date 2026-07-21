@@ -53,10 +53,6 @@ export default function MainVisual({
     setErrorMsg('');
 
     if (category === 'student') {
-      if (!applicantName.trim()) {
-        setErrorMsg('학부모 성함을 입력해 주세요.');
-        return;
-      }
       if (!contact.trim()) {
         setErrorMsg('학부모 연락처를 입력해 주세요.');
         return;
@@ -97,7 +93,7 @@ export default function MainVisual({
     const newBooking: Booking = {
       id: 'b-' + Date.now(),
       userId: currentUser?.id,
-      applicantName: applicantName.trim(),
+      applicantName: category === 'student' ? studentName.trim() : applicantName.trim(),
       contact: contact.trim(),
       relationship: finalRelationship as any,
       studentName: finalStudentName,
@@ -294,19 +290,21 @@ export default function MainVisual({
             <div className="space-y-3">
               
               {/* Applicant Name */}
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">
-                  {category === 'adult' ? '본인 성함' : '학부모 성함'} <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={category === 'adult' ? '수강생 본인 성함을 적어주세요' : '학부모님 성함을 적어주세요'}
-                  value={applicantName}
-                  onChange={(e) => setApplicantName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 bg-slate-50/50 text-slate-800 font-medium transition-colors"
-                />
-              </div>
+              {category !== 'student' && (
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    {category === 'adult' ? '본인 성함' : '학부모 성함'} <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={category === 'adult' ? '수강생 본인 성함을 적어주세요' : '학부모님 성함을 적어주세요'}
+                    value={applicantName}
+                    onChange={(e) => setApplicantName(e.target.value)}
+                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 bg-slate-50/50 text-slate-800 font-medium transition-colors"
+                  />
+                </div>
+              )}
 
               {/* Contact Number */}
               <div className="space-y-1">
