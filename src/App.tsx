@@ -240,10 +240,6 @@ export default function App() {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-[10px] text-slate-500 leading-relaxed">
-            <div>
-              <p>© 2026 OnlyOne English Inc. All rights reserved.</p>
-              <p className="mt-1">상호명: OnlyOne English | 대표이사: 홍길동 | 등록번호: 123-45-67890 | 주소: 서울시 서초구 반포대로 100</p>
-            </div>
             <div className="flex gap-4 text-xs font-semibold text-slate-400">
               <span className="hover:underline cursor-pointer">이용약관</span>
               <span className="hover:underline cursor-pointer font-bold text-slate-300">개인정보처리방침</span>
