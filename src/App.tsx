@@ -72,7 +72,7 @@ export default function App() {
     // Server-side real-time sync (PC <-> Mobile sync)
     const syncBookingsFromServer = async () => {
       try {
-        const res = await fetch('/api/bookings');
+        const res = await fetch('/api/bookings?t=' + Date.now());
         if (res.ok) {
           const serverBookings = await res.json();
           const localStr = localStorage.getItem('bookings_v1');
@@ -203,8 +203,8 @@ export default function App() {
             <MainVisual 
               onNavigateToBooking={handleNavigateToBooking}
               onNavigateToCourses={() => scrollToSection('courses-section')}
-              onBookingSuccess={() => {
-                const updated = getBookings();
+              onBookingSuccess={(updatedList) => {
+                const updated = updatedList || getBookings();
                 setBookings(updated);
                 setBookingCount(updated.length);
               }}

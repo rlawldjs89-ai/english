@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Booking, BookingStatus, Teacher } from '../types';
-import { getBookings, saveBookings } from '../lib/storage';
+import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer } from '../lib/storage';
 import { mockTeachers } from '../data/teachers';
 import { 
   Users, CheckCircle2, Clock, Eye, Edit3, Trash2, Search, Filter, 
@@ -132,45 +132,50 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
     if (!selectedBooking) return;
 
     setIsSaving(true);
-    const updated = bookings.map((b) => {
-      if (b.id === selectedBooking.id) {
-        return {
-          ...b,
-          status: editStatus,
-          teacherId: editTeacherId || undefined,
-          trialDate: editTrialDate || undefined,
-          trialTime: editTrialTime || undefined,
-          adminMemo: editAdminMemo || undefined,
-        };
-      }
-      return b;
-    });
-
-    saveBookings(updated);
-    setBookings(updated);
-    calculateStats(updated);
-    if (onBookingsChange) {
-      onBookingsChange(updated);
+    const targetBooking = bookings.find((b) => b.id === selectedBooking.id);
+    if (!targetBooking) {
+      setIsSaving(false);
+      return;
     }
-    
-    // Alert & Close
-    alert('상담 진행 정보가 정상 반영되었습니다.');
-    setSelectedBooking(null);
-    setIsSaving(false);
+
+    const updatedBooking = {
+      ...targetBooking,
+      status: editStatus,
+      teacherId: editTeacherId || undefined,
+      trialDate: editTrialDate || undefined,
+      trialTime: editTrialTime || undefined,
+      adminMemo: editAdminMemo || undefined,
+    };
+
+    updateBookingOnServer(updatedBooking).then((updatedList) => {
+      setBookings(updatedList);
+      calculateStats(updatedList);
+      if (onBookingsChange) {
+        onBookingsChange(updatedList);
+      }
+      alert('상담 진행 정보가 정상 반영되었습니다.');
+      setSelectedBooking(null);
+      setIsSaving(false);
+    }).catch((err) => {
+      alert('정보 수정 중 오류가 발생했습니다.');
+      setIsSaving(false);
+    });
   };
 
   const handleDeleteBooking = (id: string) => {
     if (confirm('이 상담 내역을 완전히 데이터베이스에서 삭제하시겠습니까?')) {
-      const updated = bookings.filter((b) => b.id !== id);
-      saveBookings(updated);
-      setBookings(updated);
-      calculateStats(updated);
-      if (onBookingsChange) {
-        onBookingsChange(updated);
-      }
-      if (selectedBooking?.id === id) {
-        setSelectedBooking(null);
-      }
+      deleteBookingOnServer(id).then((updatedList) => {
+        setBookings(updatedList);
+        calculateStats(updatedList);
+        if (onBookingsChange) {
+          onBookingsChange(updatedList);
+        }
+        if (selectedBooking?.id === id) {
+          setSelectedBooking(null);
+        }
+      }).catch((err) => {
+        alert('삭제 처리 중 오류가 발생했습니다.');
+      });
     }
   };
 

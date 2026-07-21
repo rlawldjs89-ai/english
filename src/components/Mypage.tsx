@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Booking, Teacher } from '../types';
-import { getBookings, saveBookings, setCurrentUser } from '../lib/storage';
+import { getBookings, saveBookings, setCurrentUser, updateBookingOnServer } from '../lib/storage';
 import { mockTeachers } from '../data/teachers';
 import { User as UserIcon, Calendar, BookOpen, Key, AlertTriangle, CheckCircle, Bell, Clock, Compass, Phone } from 'lucide-react';
 
@@ -102,29 +102,29 @@ export default function Mypage({ currentUser, onUserUpdate, onNavigateToBooking,
   const handleCancelRequest = (bookingId: string) => {
     if (confirm('정말로 상담 예약을 취소하시겠습니까?')) {
       const all = getBookings();
-      const updated = all.map((b) => {
-        if (b.id === bookingId) {
-          return { ...b, status: '취소' as const };
-        }
-        return b;
-      });
-      saveBookings(updated);
-      
-      if (onBookingsChange) {
-        onBookingsChange(updated);
-      } else {
-        // Fallback for independent mode
-        if (currentUser) {
-          if (currentUser.role === 'admin') {
-            setBookings(updated);
+      const targetBooking = all.find((b) => b.id === bookingId);
+      if (targetBooking) {
+        const updatedBooking = { ...targetBooking, status: '취소' as const };
+        updateBookingOnServer(updatedBooking).then((updatedList) => {
+          if (onBookingsChange) {
+            onBookingsChange(updatedList);
           } else {
-            setBookings(updated.filter((b) => b.userId === currentUser.id || b.contact === currentUser.contact));
+            // Fallback for independent mode
+            if (currentUser) {
+              if (currentUser.role === 'admin') {
+                setBookings(updatedList);
+              } else {
+                setBookings(updatedList.filter((b) => b.userId === currentUser.id || b.contact === currentUser.contact));
+              }
+            } else {
+              setBookings(updatedList.slice(0, 2));
+            }
           }
-        } else {
-          setBookings(updated.slice(0, 2));
-        }
+          alert('상담 예약 취소 요청이 정상 처리되었습니다.');
+        }).catch((err) => {
+          alert('예약 취소 중 오류가 발생했습니다.');
+        });
       }
-      alert('상담 예약 취소 요청이 정상 처리되었습니다.');
     }
   };
 

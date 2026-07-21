@@ -151,6 +151,75 @@ export function saveBookings(bookings: Booking[]): void {
   });
 }
 
+export async function addBookingOnServer(booking: Booking): Promise<Booking[]> {
+  try {
+    const res = await fetch('/api/bookings/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ booking }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      localStorage.setItem('bookings_v1', JSON.stringify(updated));
+      return updated;
+    }
+  } catch (e) {
+    console.error('Failed to add booking on server, using local:', e);
+  }
+  const current = getBookings();
+  const updated = [booking, ...current];
+  localStorage.setItem('bookings_v1', JSON.stringify(updated));
+  return updated;
+}
+
+export async function updateBookingOnServer(booking: Booking): Promise<Booking[]> {
+  try {
+    const res = await fetch('/api/bookings/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ booking }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      localStorage.setItem('bookings_v1', JSON.stringify(updated));
+      return updated;
+    }
+  } catch (e) {
+    console.error('Failed to update booking on server, using local:', e);
+  }
+  const current = getBookings();
+  const updated = current.map(b => b.id === booking.id ? booking : b);
+  localStorage.setItem('bookings_v1', JSON.stringify(updated));
+  return updated;
+}
+
+export async function deleteBookingOnServer(id: string): Promise<Booking[]> {
+  try {
+    const res = await fetch('/api/bookings/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      localStorage.setItem('bookings_v1', JSON.stringify(updated));
+      return updated;
+    }
+  } catch (e) {
+    console.error('Failed to delete booking on server, using local:', e);
+  }
+  const current = getBookings();
+  const updated = current.filter(b => b.id !== id);
+  localStorage.setItem('bookings_v1', JSON.stringify(updated));
+  return updated;
+}
+
 export function getUsers(): User[] {
   const local = localStorage.getItem('users_v1');
   if (!local) {

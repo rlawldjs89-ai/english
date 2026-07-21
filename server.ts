@@ -153,6 +153,9 @@ async function startServer() {
 
   // API Route: GET /api/bookings
   app.get("/api/bookings", (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.json(getBookings());
   });
 
@@ -164,6 +167,49 @@ async function startServer() {
       res.json({ success: true, count: bookings.length });
     } else {
       res.status(400).json({ error: "Invalid bookings data format" });
+    }
+  });
+
+  // API Route: POST /api/bookings/add
+  app.post("/api/bookings/add", (req, res) => {
+    const { booking } = req.body;
+    if (booking && typeof booking === 'object') {
+      const current = getBookings();
+      if (!current.some((b: any) => b.id === booking.id)) {
+        const updated = [booking, ...current];
+        saveBookings(updated);
+        res.json(updated);
+      } else {
+        res.json(current);
+      }
+    } else {
+      res.status(400).json({ error: "Invalid booking data" });
+    }
+  });
+
+  // API Route: POST /api/bookings/update
+  app.post("/api/bookings/update", (req, res) => {
+    const { booking } = req.body;
+    if (booking && typeof booking === 'object' && booking.id) {
+      const current = getBookings();
+      const updated = current.map((b: any) => b.id === booking.id ? booking : b);
+      saveBookings(updated);
+      res.json(updated);
+    } else {
+      res.status(400).json({ error: "Invalid booking data" });
+    }
+  });
+
+  // API Route: POST /api/bookings/delete
+  app.post("/api/bookings/delete", (req, res) => {
+    const { id } = req.body;
+    if (id) {
+      const current = getBookings();
+      const updated = current.filter((b: any) => b.id !== id);
+      saveBookings(updated);
+      res.json(updated);
+    } else {
+      res.status(400).json({ error: "Invalid booking ID" });
     }
   });
 

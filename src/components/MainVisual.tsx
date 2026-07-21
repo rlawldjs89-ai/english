@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Calendar, ArrowRight, MapPin, Video, Send, CheckCircle } from 'lucide-react';
-import { getBookings, saveBookings } from '../lib/storage';
+import { getBookings, addBookingOnServer } from '../lib/storage';
 import { Booking, User } from '../types';
 
 interface MainVisualProps {
   onNavigateToBooking: () => void;
   onNavigateToCourses: () => void;
-  onBookingSuccess?: () => void;
+  onBookingSuccess?: (updatedBookings?: Booking[]) => void;
   currentUser?: User | null;
 }
 
@@ -118,26 +118,22 @@ export default function MainVisual({
       createdAt: new Date().toISOString()
     };
 
-    try {
-      const currentBookings = getBookings();
-      const updatedBookings = [newBooking, ...currentBookings];
-      saveBookings(updatedBookings);
-      
+    addBookingOnServer(newBooking).then((updatedList) => {
       setIsSuccess(true);
       setApplicantName('');
       setContact('');
       setStudentName('');
       
       if (onBookingSuccess) {
-        onBookingSuccess();
+        onBookingSuccess(updatedList);
       }
 
       setTimeout(() => {
         setIsSuccess(false);
       }, 5000);
-    } catch (err) {
+    }).catch((err) => {
       setErrorMsg('상담 예약 처리 중 문제가 발생했습니다. 다시 시도해 주세요.');
-    }
+    });
   };
 
   return (
