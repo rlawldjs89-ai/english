@@ -26,7 +26,27 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers'>('home');
+  const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers'>(() => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return 'home';
+    const savedView = localStorage.getItem('active_view_v1');
+    if (savedView) {
+      const validViews = ['home', 'booking', 'mypage', 'admin', 'teachers'];
+      if (validViews.includes(savedView)) {
+        if (savedView === 'admin' && currentUser.role !== 'admin') {
+          return 'mypage';
+        }
+        return savedView as 'home' | 'booking' | 'mypage' | 'admin' | 'teachers';
+      }
+    }
+    return currentUser.role === 'admin' ? 'admin' : 'mypage';
+  });
+
+  const changeView = (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers') => {
+    setActiveView(view);
+    localStorage.setItem('active_view_v1', view);
+  };
+
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -37,24 +57,32 @@ export default function App() {
   const [bookingCount, setBookingCount] = useState(0);
 
   useEffect(() => {
-    setUser(getCurrentUser());
+    const loadedUser = getCurrentUser();
+    setUser(loadedUser);
     setBookings(getBookings());
     setBookingCount(getBookings().length);
+    if (loadedUser && !localStorage.getItem('active_view_v1')) {
+      if (loadedUser.role === 'admin') {
+        changeView('admin');
+      } else {
+        changeView('mypage');
+      }
+    }
   }, []);
 
   const handleLoginSuccess = (loggedInUser: User) => {
     setUser(loggedInUser);
     if (loggedInUser.role === 'admin') {
-      setActiveView('admin');
+      changeView('admin');
     } else {
-      setActiveView('mypage');
+      changeView('mypage');
     }
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     setUser(null);
-    setActiveView('home');
+    changeView('home');
     alert('로그아웃되었습니다.');
   };
 
@@ -76,7 +104,7 @@ export default function App() {
       };
       setCurrentUser(adminUser);
       setUser(adminUser);
-      setActiveView('admin');
+      changeView('admin');
       alert('관리자 모드로 신속 전환되었습니다. 전체 상담 신청 분석 및 상태 변경, 엑셀 다운로드가 가능합니다.');
     } else {
       const demoUser: User = {
@@ -91,14 +119,14 @@ export default function App() {
       };
       setCurrentUser(demoUser);
       setUser(demoUser);
-      setActiveView('mypage');
+      changeView('mypage');
       alert(`${role === 'parent' ? '학부모' : role === 'student' ? '초중고생' : '대학생·성인'} 테스트 모드로 전환되었습니다. 내 맞춤 일정을 조회할 수 있습니다.`);
     }
   };
 
   // Smooth scroll to element helper for landing sections
   const scrollToSection = (id: string) => {
-    setActiveView('home');
+    changeView('home');
     setTimeout(() => {
       const element = document.getElementById(id);
       if (element) {
@@ -108,7 +136,7 @@ export default function App() {
   };
 
   const handleNavigateToBooking = () => {
-    setActiveView('home');
+    changeView('home');
     setTimeout(() => {
       const element = document.getElementById('quick-consult-section');
       if (element) {
@@ -130,7 +158,7 @@ export default function App() {
           if (view === 'booking') {
             handleNavigateToBooking();
           } else {
-            setActiveView(view);
+            changeView(view);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         }}

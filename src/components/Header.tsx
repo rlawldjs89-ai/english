@@ -71,7 +71,7 @@ export default function Header({
         </nav>
 
         {/* Right CTA Actions panel */}
-        <div className="hidden sm:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           {currentUser ? (
             <div className="flex items-center gap-2">
               <button
