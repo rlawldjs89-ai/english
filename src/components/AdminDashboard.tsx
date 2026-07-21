@@ -7,8 +7,13 @@ import {
   Download, Calendar, Plus, RefreshCw, Bookmark, Award, HelpCircle, FileSpreadsheet, MapPin
 } from 'lucide-react';
 
-export default function AdminDashboard() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+interface AdminDashboardProps {
+  bookings?: Booking[];
+  onBookingsChange?: (updated: Booking[]) => void;
+}
+
+export default function AdminDashboard({ bookings: propBookings, onBookingsChange }: AdminDashboardProps) {
+  const [bookings, setBookings] = useState<Booking[]>(propBookings || []);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   
   // Search & Filter state
@@ -42,14 +47,19 @@ export default function AdminDashboard() {
   });
 
   const loadData = () => {
-    const list = getBookings();
+    const list = propBookings || getBookings();
     setBookings(list);
     calculateStats(list);
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (propBookings) {
+      setBookings(propBookings);
+      calculateStats(propBookings);
+    } else {
+      loadData();
+    }
+  }, [propBookings]);
 
   // Filter Logic
   useEffect(() => {
@@ -139,6 +149,9 @@ export default function AdminDashboard() {
     saveBookings(updated);
     setBookings(updated);
     calculateStats(updated);
+    if (onBookingsChange) {
+      onBookingsChange(updated);
+    }
     
     // Alert & Close
     alert('상담 진행 정보가 정상 반영되었습니다.');
@@ -152,6 +165,9 @@ export default function AdminDashboard() {
       saveBookings(updated);
       setBookings(updated);
       calculateStats(updated);
+      if (onBookingsChange) {
+        onBookingsChange(updated);
+      }
       if (selectedBooking?.id === id) {
         setSelectedBooking(null);
       }

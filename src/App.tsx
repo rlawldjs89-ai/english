@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { User, Booking, UserRole } from './types';
 import { getCurrentUser, setCurrentUser, getBookings, saveBookings } from './lib/storage';
 import { mockTeachers } from './data/teachers';
@@ -16,7 +17,6 @@ import TrialInfo from './components/TrialInfo';
 import ReviewsSection from './components/ReviewsSection';
 import FaqSection from './components/FaqSection';
 import BrandIntro from './components/BrandIntro';
-import BookingForm from './components/BookingForm';
 import Mypage from './components/Mypage';
 import AdminDashboard from './components/AdminDashboard';
 import AuthModal from './components/AuthModal';
@@ -32,11 +32,13 @@ export default function App() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactType, setContactType] = useState<'tel' | 'kakao'>('tel');
   
+  const [bookings, setBookings] = useState<Booking[]>([]);
   // Quick notice on local storage changes
   const [bookingCount, setBookingCount] = useState(0);
 
   useEffect(() => {
     setUser(getCurrentUser());
+    setBookings(getBookings());
     setBookingCount(getBookings().length);
   }, []);
 
@@ -105,6 +107,18 @@ export default function App() {
     }, 100);
   };
 
+  const handleNavigateToBooking = () => {
+    setActiveView('home');
+    setTimeout(() => {
+      const element = document.getElementById('quick-consult-section');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const input = element.querySelector('input');
+        if (input) input.focus();
+      }
+    }, 150);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 relative pb-16 md:pb-0">
       
@@ -113,8 +127,12 @@ export default function App() {
         activeView={activeView}
         currentUser={user}
         onNavigate={(view) => {
-          setActiveView(view);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (view === 'booking') {
+            handleNavigateToBooking();
+          } else {
+            setActiveView(view);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
         }}
         onScrollToSection={scrollToSection}
         onOpenLogin={() => setIsAuthModalOpen(true)}
@@ -127,12 +145,13 @@ export default function App() {
           <div className="animate-in fade-in duration-300">
             {/* SECTION 1. 메인 비주얼 */}
             <MainVisual 
-              onNavigateToBooking={() => {
-                setActiveView('booking');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigateToBooking={handleNavigateToBooking}
               onNavigateToCourses={() => scrollToSection('courses-section')}
-              onBookingSuccess={() => setBookingCount(getBookings().length)}
+              onBookingSuccess={() => {
+                const updated = getBookings();
+                setBookings(updated);
+                setBookingCount(updated.length);
+              }}
               currentUser={user}
             />
 
@@ -140,22 +159,13 @@ export default function App() {
             <Benefits />
 
             {/* SECTION 3. 대상별 영어수업 */}
-            <Courses onNavigateToBooking={() => {
-              setActiveView('booking');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} />
+            <Courses onNavigateToBooking={handleNavigateToBooking} />
 
             {/* SECTION 4. 영어 회화수업 */}
-            <ConversationCourse onNavigateToBooking={() => {
-              setActiveView('booking');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} />
+            <ConversationCourse onNavigateToBooking={handleNavigateToBooking} />
 
             {/* SECTION 5. 영어 인증시험 대비 */}
-            <ExamPreparation onNavigateToBooking={() => {
-              setActiveView('booking');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} />
+            <ExamPreparation onNavigateToBooking={handleNavigateToBooking} />
 
             {/* SECTION 6. 방문수업과 화상수업 비교 */}
             <CourseTypeComparison />
@@ -164,10 +174,7 @@ export default function App() {
             <TeacherMatching />
 
             {/* SECTION 8. 무료 체험수업 안내 */}
-            <TrialInfo onNavigateToBooking={() => {
-              setActiveView('booking');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} />
+            <TrialInfo onNavigateToBooking={handleNavigateToBooking} />
 
             {/* SECTION 9. 실제 수업 후기 */}
             <ReviewsSection />
@@ -182,26 +189,27 @@ export default function App() {
           </div>
         )}
 
-        {activeView === 'booking' && (
-          <BookingForm
-            currentUser={user}
-            onBookingSuccess={() => {
-              setBookingCount(getBookings().length);
-            }}
-            onNavigateToMypage={() => setActiveView('mypage')}
-          />
-        )}
-
         {activeView === 'mypage' && (
           <Mypage
             currentUser={user}
             onUserUpdate={handleUserUpdate}
-            onNavigateToBooking={() => setActiveView('booking')}
+            onNavigateToBooking={handleNavigateToBooking}
+            bookings={bookings}
+            onBookingsChange={(updated) => {
+              setBookings(updated);
+              setBookingCount(updated.length);
+            }}
           />
         )}
 
         {activeView === 'admin' && (
-          <AdminDashboard />
+          <AdminDashboard 
+            bookings={bookings}
+            onBookingsChange={(updated) => {
+              setBookings(updated);
+              setBookingCount(updated.length);
+            }}
+          />
         )}
       </main>
 
@@ -272,14 +280,11 @@ export default function App() {
         </button>
 
         <button
-          onClick={() => {
-            setActiveView('booking');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          onClick={handleNavigateToBooking}
           className="flex flex-col items-center justify-center py-1.5 bg-orange-500 text-white rounded-xl shadow-md"
         >
           <Calendar size={18} />
-          <span className="text-[10px] font-black mt-1">무료 체험 신청</span>
+          <span className="text-[10px] font-black mt-1">캠프·유학 상담</span>
         </button>
       </div>
 
@@ -346,6 +351,28 @@ export default function App() {
         onClose={() => setIsAuthModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
       />
+
+      {/* 8. Dynamic Floating Quick Booking Badge */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ delay: 1 }}
+        className="fixed right-4 bottom-24 md:right-8 md:bottom-12 z-40 flex flex-col items-end gap-2 group cursor-pointer"
+        onClick={handleNavigateToBooking}
+      >
+        {/* Pulsing Highlight Text Bubble */}
+        <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-[11px] md:text-xs py-1.5 px-3.5 rounded-full shadow-xl border border-orange-400/50 animate-bounce flex items-center gap-1.5">
+          <span className="text-xs animate-pulse">🤍</span>
+          빠른 무료 상담 신청!
+        </div>
+
+        {/* Circular Floating Icon with Ring */}
+        <div className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
+          <div className="absolute inset-0 rounded-full bg-orange-500 animate-ping opacity-20 group-hover:opacity-30" />
+          <span className="text-[10px] md:text-[11px] font-black tracking-widest text-white uppercase drop-shadow">CLICK</span>
+          <span className="text-sm md:text-base animate-pulse mt-0.5 filter drop-shadow">✨</span>
+        </div>
+      </motion.div>
 
     </div>
   );

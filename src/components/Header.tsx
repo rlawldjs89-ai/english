@@ -115,13 +115,6 @@ export default function Header({
               로그인 / 가입
             </button>
           )}
-
-          <button
-            onClick={() => onNavigate('booking')}
-            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black rounded-xl transition-all shadow-md shadow-orange-500/10 hover:scale-103"
-          >
-            무료 체험수업 신청
-          </button>
         </div>
 
         {/* Mobile Hamburger menu toggle button */}
@@ -214,7 +207,7 @@ export default function Header({
             }}
             className="w-full py-3 bg-orange-500 text-white font-black text-xs rounded-xl text-center block shadow-md"
           >
-            무료 체험수업 신청서 작성하기
+            캠프 및 조기유학 상담 신청하기
           </button>
         </div>
       )}

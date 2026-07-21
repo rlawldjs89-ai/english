@@ -8,9 +8,11 @@ interface MypageProps {
   currentUser: User | null;
   onUserUpdate: (updated: User) => void;
   onNavigateToBooking: () => void;
+  bookings?: Booking[];
+  onBookingsChange?: (updated: Booking[]) => void;
 }
 
-export default function Mypage({ currentUser, onUserUpdate, onNavigateToBooking }: MypageProps) {
+export default function Mypage({ currentUser, onUserUpdate, onNavigateToBooking, bookings: propBookings, onBookingsChange }: MypageProps) {
   const [activeTab, setActiveTab] = useState<'bookings' | 'profile' | 'notices'>('bookings');
   
   // User Profile States
@@ -31,7 +33,7 @@ export default function Mypage({ currentUser, onUserUpdate, onNavigateToBooking 
 
   useEffect(() => {
     // Refresh bookings
-    const allBookings = getBookings();
+    const allBookings = propBookings || getBookings();
     if (currentUser) {
       if (currentUser.role === 'admin') {
         setBookings(allBookings); // Admin sees everything in mypage too, or standard filter
@@ -46,7 +48,7 @@ export default function Mypage({ currentUser, onUserUpdate, onNavigateToBooking 
       // Guest demo view showing some mock bookings so user can instantly play
       setBookings(allBookings.slice(0, 2));
     }
-  }, [currentUser]);
+  }, [currentUser, propBookings]);
 
   // Sync profile fields
   useEffect(() => {
@@ -108,15 +110,19 @@ export default function Mypage({ currentUser, onUserUpdate, onNavigateToBooking 
       });
       saveBookings(updated);
       
-      // Update local state
-      if (currentUser) {
-        if (currentUser.role === 'admin') {
-          setBookings(updated);
-        } else {
-          setBookings(updated.filter((b) => b.userId === currentUser.id || b.contact === currentUser.contact));
-        }
+      if (onBookingsChange) {
+        onBookingsChange(updated);
       } else {
-        setBookings(updated.slice(0, 2));
+        // Fallback for independent mode
+        if (currentUser) {
+          if (currentUser.role === 'admin') {
+            setBookings(updated);
+          } else {
+            setBookings(updated.filter((b) => b.userId === currentUser.id || b.contact === currentUser.contact));
+          }
+        } else {
+          setBookings(updated.slice(0, 2));
+        }
       }
       alert('상담 예약 취소 요청이 정상 처리되었습니다.');
     }
