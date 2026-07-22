@@ -409,27 +409,60 @@ export default function App() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* 8. Dynamic Floating Quick Booking Badge */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.8, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ delay: 1 }}
-        className="fixed right-4 bottom-6 md:right-8 md:bottom-12 z-40 flex flex-col items-end gap-2 group cursor-pointer"
-        onClick={handleNavigateToBooking}
-      >
-        {/* Pulsing Highlight Text Bubble */}
-        <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-[11px] md:text-xs py-1.5 px-3.5 rounded-full shadow-xl border border-orange-400/50 animate-bounce flex items-center gap-1.5">
-          <span className="text-xs animate-pulse">🤍</span>
-          빠른 무료 상담 신청!
-        </div>
+      {/* 8. Dynamic Floating Badges: Quick Consult + Friendly Phone Consult */}
+      <div className="fixed right-4 bottom-5 md:right-8 md:bottom-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
+        {/* Top Floating Badge: Quick Free Consultation */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="flex flex-col items-end gap-1.5 group cursor-pointer"
+          onClick={handleNavigateToBooking}
+        >
+          {/* Pulsing Highlight Text Bubble */}
+          <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-[11px] md:text-xs py-1.5 px-3.5 rounded-full shadow-xl border border-orange-400/50 animate-bounce flex items-center gap-1.5">
+            <span className="text-xs animate-pulse">🤍</span>
+            빠른 무료 상담 신청!
+          </div>
 
-        {/* Circular Floating Icon with Ring */}
-        <div className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
-          <div className="absolute inset-0 rounded-full bg-orange-500 animate-ping opacity-20 group-hover:opacity-30" />
-          <span className="text-[10px] md:text-[11px] font-black tracking-widest text-white uppercase drop-shadow">CLICK</span>
-          <span className="text-sm md:text-base animate-pulse mt-0.5 filter drop-shadow">✨</span>
-        </div>
-      </motion.div>
+          {/* Circular Floating Icon with Ring */}
+          <div className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
+            <div className="absolute inset-0 rounded-full bg-orange-500 animate-ping opacity-20 group-hover:opacity-30" />
+            <span className="text-[10px] md:text-[11px] font-black tracking-widest text-white uppercase drop-shadow">CLICK</span>
+            <span className="text-sm md:text-base animate-pulse mt-0.5 filter drop-shadow">✨</span>
+          </div>
+        </motion.div>
+
+        {/* Bottom Floating Badge: Friendly Phone Consultation Badge */}
+        <motion.a 
+          href="tel:010-1234-5678"
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 1 }}
+          className="flex flex-col items-end gap-1.5 group cursor-pointer no-underline"
+          title="친절한 전화상담 바로 연결 (010-1234-5678)"
+          onClick={(e) => {
+            // Friendly popup fallback if clicked on desktop without telephony support
+            if (!navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/i)) {
+              e.preventDefault();
+              alert('📞 친절한 1:1 전화상담 안내\n\n직통 전화번호: 010-1234-5678\n(대표번호: 1588-0000)\n\n모바일 기기에서는 바로 전화 연결이 실행됩니다!');
+            }
+          }}
+        >
+          {/* Green Highlight Text Bubble */}
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold text-[11px] md:text-xs py-1.5 px-3.5 rounded-full shadow-xl border border-emerald-400/50 flex items-center gap-1.5 group-hover:scale-105 transition-transform">
+            <span className="text-xs animate-pulse">📞</span>
+            친절한 전화상담 (바로연결)
+          </div>
+
+          {/* Circular Floating Phone Icon */}
+          <div className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
+            <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-20 group-hover:opacity-30" />
+            <Phone size={22} className="text-white drop-shadow animate-pulse" />
+            <span className="text-[9px] md:text-[10px] font-black text-emerald-100 mt-0.5 tracking-tighter">통화하기</span>
+          </div>
+        </motion.a>
+      </div>
 
     </div>
   );

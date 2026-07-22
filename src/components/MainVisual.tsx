@@ -22,6 +22,7 @@ export default function MainVisual({
   const [applicantName, setApplicantName] = useState('');
   const [contact, setContact] = useState('');
   const [studentName, setStudentName] = useState('');
+  const [region, setRegion] = useState('');
   const [grade, setGrade] = useState('초등 저학년');
   const [preferredCamp, setPreferredCamp] = useState('초등 기본영어');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -47,6 +48,7 @@ export default function MainVisual({
     if (currentUser) {
       setApplicantName(currentUser.name || '');
       setContact(currentUser.contact || '');
+      if (currentUser.region) setRegion(currentUser.region);
     }
   }, [currentUser]);
 
@@ -90,18 +92,19 @@ export default function MainVisual({
 
     const finalStudentName = category === 'adult' ? applicantName.trim() : studentName.trim();
     const finalName = category === 'adult' ? applicantName.trim() : (studentName.trim() || applicantName.trim());
-    const finalReason = `[빠른 상담 신청] 분류: ${category === 'student' ? '학생용' : category === 'adult' ? '성인용' : '캠프용'} | 희망 프로그램: ${preferredCamp} | 학년/연령대: ${grade} | 수강생: ${finalStudentName}`;
+    const finalRegion = region.trim() || currentUser?.region || '미지정';
+    const finalReason = `[빠른 상담 신청] 분류: ${category === 'student' ? '학생용' : category === 'adult' ? '성인용' : '캠프용'} | 거주지역: ${finalRegion} | 희망 프로그램: ${preferredCamp} | 학년/연령대: ${grade} | 수강생: ${finalStudentName}`;
 
     setIsSubmitting(true);
 
     try {
-      // Requirement 1, 2, 3: Save to Firestore consultations collection with serverTimestamp
+      // Save to Firestore consultations collection
       await addConsultationToFirestore({
         name: finalName,
         contact: contact.trim(),
         grade: grade,
         subject: preferredCamp,
-        classType: '방문·화상 모두 상담 희망',
+        classType: finalRegion !== '미지정' ? `방문·화상 (${finalRegion})` : '방문·화상 모두 상담 희망',
         preferredDate: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
         preferredTimeSlot: '평일 오후',
         content: finalReason,
@@ -118,7 +121,7 @@ export default function MainVisual({
         studentName: finalStudentName,
         studentAge: category === 'adult' ? '30' : '12',
         gradeOrJob: grade,
-        region: currentUser?.region || '서울 서초구',
+        region: finalRegion,
         currentLevel: '중급 (의사소통/학교내신)',
         selectedCourse: preferredCamp,
         classType: '방문·화상 모두 상담 희망',
@@ -149,6 +152,7 @@ export default function MainVisual({
       setApplicantName('');
       setContact('');
       setStudentName('');
+      setRegion('');
 
       if (onBookingSuccess) {
         onBookingSuccess(updatedList);
@@ -371,6 +375,24 @@ export default function MainVisual({
                   />
                 </div>
               )}
+
+              {/* Residence Region Input */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
+                  <span>거주지역 <span className="text-slate-400 font-normal text-[11px]">(선택)</span></span>
+                  <span className="text-[10px] text-orange-600 font-semibold">📍 방문수업 필수입력</span>
+                </label>
+                <div className="relative">
+                  <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="ex) 00시 00동 (예: 서울시 강남구 역삼동)"
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 bg-slate-50/50 text-slate-800 font-medium transition-colors"
+                  />
+                </div>
+              </div>
 
               {/* Grade & Preferred Program */}
               <div className="grid grid-cols-2 gap-2.5">
