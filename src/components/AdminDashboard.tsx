@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Booking, BookingStatus, Consultation, Teacher } from '../types';
-import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer, fetchAndMergeServerBookings, mergeBookings, subscribeBookings } from '../lib/storage';
+import { Booking, BookingStatus, Consultation, Teacher, isAdminEmail } from '../types';
+import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer, fetchAndMergeServerBookings, mergeBookings, subscribeBookings, getCurrentUser, setCurrentUser } from '../lib/storage';
 import { auth, subscribeConsultations, loginWithEmailOrAdmin } from '../lib/firebase';
-import { setCurrentUser } from '../lib/storage';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { mockTeachers } from '../data/teachers';
 import { 
@@ -27,6 +26,9 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [lastSyncedTime, setLastSyncedTime] = useState<string>('');
 
+  const localUser = getCurrentUser();
+  const isLocalAdmin = Boolean(localUser && (localUser.role === 'admin' || isAdminEmail(localUser.email)));
+
   // Firebase Auth listener
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -35,13 +37,8 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
     return () => unsubscribeAuth();
   }, []);
 
-  // Real-time Firestore Subscription to 'consultations' collection (Requirement #6, #7, #8, #9)
+  // Real-time Firestore Subscription to 'consultations' collection
   useEffect(() => {
-    if (!authUser) {
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     setFetchError(null);
 
@@ -365,7 +362,7 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
     }
   };
 
-  if (!authUser) {
+  if (!authUser && !isLocalAdmin) {
     return (
       <div className="max-w-md mx-auto my-16 bg-white border border-slate-200 p-8 rounded-3xl shadow-lg text-center space-y-5">
         <div className="w-16 h-16 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center mx-auto shadow-inner">

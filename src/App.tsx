@@ -30,19 +30,24 @@ import {
 
 export default function App() {
   const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers'>(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return 'home';
     const savedView = localStorage.getItem('active_view_v1');
+    const currentUser = getCurrentUser();
     if (savedView) {
       const validViews = ['home', 'booking', 'mypage', 'admin', 'teachers'];
       if (validViews.includes(savedView)) {
-        if (savedView === 'admin' && currentUser.role !== 'admin') {
-          return 'mypage';
+        if (savedView === 'admin') {
+          if (!currentUser || currentUser.role === 'admin' || isAdminEmail(currentUser.email)) {
+            return 'admin';
+          }
+        } else {
+          return savedView as 'home' | 'booking' | 'mypage' | 'admin' | 'teachers';
         }
-        return savedView as 'home' | 'booking' | 'mypage' | 'admin' | 'teachers';
       }
     }
-    return currentUser.role === 'admin' ? 'admin' : 'mypage';
+    if (currentUser) {
+      return (currentUser.role === 'admin' || isAdminEmail(currentUser.email)) ? 'admin' : 'mypage';
+    }
+    return 'home';
   });
 
   const [user, setUser] = useState<User | null>(null);
