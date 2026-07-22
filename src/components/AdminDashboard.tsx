@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Booking, BookingStatus, Teacher } from '../types';
-import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer, fetchAndMergeServerBookings, mergeBookings } from '../lib/storage';
+import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer, fetchAndMergeServerBookings, mergeBookings, subscribeBookings } from '../lib/storage';
 import { mockTeachers } from '../data/teachers';
 import { 
   Users, CheckCircle2, Clock, Eye, Edit3, Trash2, Search, Filter, 
@@ -77,12 +77,27 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
     // Initial fetch on mount
     loadData();
 
-    // Auto polling every 3 seconds for live multi-device consultation submissions
+    // Real-time Firestore subscription to 'bookings' collection
+    const unsubscribeFirestore = subscribeBookings((firestoreBookings) => {
+      if (firestoreBookings && firestoreBookings.length > 0) {
+        const localList = getBookings();
+        const merged = mergeBookings(localList, firestoreBookings);
+        setBookings(merged);
+        calculateStats(merged);
+        setLastSyncedTime(new Date().toLocaleTimeString('ko-KR'));
+        if (onBookingsChange) {
+          onBookingsChange(merged);
+        }
+      }
+    });
+
+    // Auto polling every 3 seconds as backup for server memory sync
     const intervalId = setInterval(() => {
       loadData();
     }, 3000);
 
     return () => {
+      unsubscribeFirestore();
       clearInterval(intervalId);
     };
   }, []);
