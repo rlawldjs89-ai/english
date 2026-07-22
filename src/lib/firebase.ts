@@ -7,8 +7,19 @@ import {
   deleteDoc, 
   onSnapshot, 
   query, 
-  getDocs
+  getDocs,
+  getDocFromServer
 } from 'firebase/firestore';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut as firebaseSignOut, 
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  User as FirebaseUser
+} from 'firebase/auth';
 import config from '../../firebase-applet-config.json';
 import { Booking } from '../types';
 
@@ -19,9 +30,49 @@ const databaseId = config.firestoreDatabaseId && config.firestoreDatabaseId !== 
   : undefined;
 
 export const db = getFirestore(app, databaseId);
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
+
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+// Test connection on boot
+async function testConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error("Please check your Firebase configuration.");
+    }
+  }
+}
+testConnection();
 
 // Collection reference
 export const bookingsCol = collection(db, 'bookings');
+export const usersCol = collection(db, 'users');
 
 // Initial seed bookings
 export const SEED_BOOKINGS: Booking[] = [
@@ -163,18 +214,54 @@ export function subscribeBookings(callback: (bookings: Booking[]) => void) {
     bookings.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     callback(bookings);
   }, (err) => {
-    console.error('Firestore subscription error:', err);
+    handleFirestoreError(err, OperationType.LIST, 'bookings');
   });
 }
 
 // Add or update booking in Firestore
 export async function saveBookingToFirestore(booking: Booking): Promise<void> {
-  const ref = doc(db, 'bookings', booking.id);
-  await setDoc(ref, booking, { merge: true });
+  try {
+    const ref = doc(db, 'bookings', booking.id);
+    await setDoc(ref, booking, { merge: true });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, `bookings/${booking.id}`);
+  }
 }
 
 // Delete booking from Firestore
 export async function deleteBookingFromFirestore(id: string): Promise<void> {
-  const ref = doc(db, 'bookings', id);
-  await deleteDoc(ref);
+  try {
+    const ref = doc(db, 'bookings', id);
+    await deleteDoc(ref);
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, `bookings/${id}`);
+  }
 }
+
+// Firebase Auth Helpers
+export async function loginWithGoogle() {
+  try {
+    const res = await signInWithPopup(auth, googleProvider);
+    if (res.user) {
+      // Save user profile to Firestore
+      const userRef = doc(db, 'users', res.user.uid);
+      await setDoc(userRef, {
+        uid: res.user.uid,
+        email: res.user.email || '',
+        displayName: res.user.displayName || '온리원 회원의',
+        photoURL: res.user.photoURL || '',
+        role: 'student',
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    }
+    return res.user;
+  } catch (err) {
+    console.error("Google login failed:", err);
+    throw err;
+  }
+}
+
+export async function logoutFirebase() {
+  return firebaseSignOut(auth);
+}
+

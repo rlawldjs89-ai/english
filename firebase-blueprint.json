@@ -2,9 +2,10 @@
   "entities": {
     "Booking": {
       "title": "Booking",
-      "description": "Consultation and trial lesson bookings",
+      "description": "Consultation and lesson booking application",
       "type": "object",
       "properties": {
+        "id": { "type": "string" },
         "userId": { "type": "string" },
         "applicantName": { "type": "string" },
         "contact": { "type": "string" },
@@ -18,39 +19,41 @@
         "classType": { "type": "string" },
         "preferredDate": { "type": "string" },
         "preferredTimeSlot": { "type": "string" },
-        "preferredTimeDetail": { "type": "string" },
         "reason": { "type": "string" },
         "goals": { "type": "string" },
-        "examSchedule": { "type": "string" },
-        "preferredSessionsCount": { "type": "string" },
         "preferredTeacherGender": { "type": "string" },
-        "campExperience": { "type": "string" },
-        "preferredCampLocation": { "type": "string" },
-        "memo": { "type": "string" },
         "status": { "type": "string" },
-        "adminMemo": { "type": "string" },
-        "teacherId": { "type": "string" },
         "trialDate": { "type": "string" },
         "trialTime": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "teacherId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "adminMemo": { "type": "string" }
       },
-      "required": ["applicantName", "contact", "status", "createdAt"]
+      "required": ["id", "applicantName", "contact"]
     },
-    "User": {
-      "title": "User",
-      "description": "User profiles",
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
       "type": "object",
       "properties": {
+        "uid": { "type": "string" },
         "email": { "type": "string" },
-        "name": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
         "role": { "type": "string" },
-        "contact": { "type": "string" },
-        "relationship": { "type": "string" },
-        "studentAge": { "type": "string" },
-        "gradeOrJob": { "type": "string" },
-        "region": { "type": "string" },
         "createdAt": { "type": "string" }
-      }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/Booking" },
+      "description": "All consultation and lesson bookings"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Registered user accounts"
     }
   }
 }

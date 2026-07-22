@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { User, Booking, UserRole } from './types';
 import { getCurrentUser, setCurrentUser, getBookings, saveBookings, subscribeBookings, fetchAndMergeServerBookings } from './lib/storage';
+import { auth, logoutFirebase } from './lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { mockTeachers } from './data/teachers';
+
 
 // Component imports
 import Header from './components/Header';
@@ -91,8 +94,25 @@ export default function App() {
     // Run initial sync right away as backup
     syncBookingsFromServer();
 
+    // Listen to Firebase Auth state changes
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const appUser: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || 'user@english.com',
+          name: firebaseUser.displayName || '온리원 회원',
+          role: firebaseUser.email === 'admin@english.com' ? 'admin' : 'student',
+          contact: firebaseUser.phoneNumber || '010-0000-0000',
+          createdAt: new Date().toISOString(),
+        };
+        setUser(appUser);
+        setCurrentUser(appUser);
+      }
+    });
+
     return () => {
       unsubscribe();
+      unsubscribeAuth();
     };
   }, []);
 
@@ -105,12 +125,18 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logoutFirebase();
+    } catch (e) {
+      console.warn("Firebase logout warning:", e);
+    }
     setCurrentUser(null);
     setUser(null);
     changeView('home');
     alert('로그아웃되었습니다.');
   };
+
 
   const handleUserUpdate = (updatedUser: User) => {
     setUser(updatedUser);
