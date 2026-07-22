@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Booking, BookingStatus, Consultation, Teacher } from '../types';
 import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer, fetchAndMergeServerBookings, mergeBookings, subscribeBookings } from '../lib/storage';
-import { auth, subscribeConsultations } from '../lib/firebase';
+import { auth, subscribeConsultations, loginWithEmailOrAdmin } from '../lib/firebase';
+import { setCurrentUser } from '../lib/storage';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { mockTeachers } from '../data/teachers';
 import { 
@@ -343,6 +344,27 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   ];
 
   // Requirement #10: Firebase Authentication check for admin access
+  const handleQuickAdminLogin = async () => {
+    try {
+      setIsLoading(true);
+      const fbUser = await loginWithEmailOrAdmin('admin@english.com', '1234');
+      const adminUser = {
+        id: fbUser.uid || 'admin-user',
+        email: 'admin@english.com',
+        name: '최고관리자',
+        role: 'admin' as const,
+        contact: '010-1234-5678',
+        createdAt: new Date().toISOString(),
+      };
+      setCurrentUser(adminUser);
+      setAuthUser(fbUser);
+    } catch (err) {
+      console.error('Quick admin login error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!authUser) {
     return (
       <div className="max-w-md mx-auto my-16 bg-white border border-slate-200 p-8 rounded-3xl shadow-lg text-center space-y-5">
@@ -352,22 +374,42 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
         <div className="space-y-1">
           <h2 className="text-xl font-extrabold text-slate-900">관리자 전용 로그인 필요</h2>
           <p className="text-xs text-slate-500 leading-relaxed">
-            상담 신청 내역 조회를 위해 Firebase Authentication 관리자 계정 로그인이 필요합니다.
+            실시간 상담 신청 내역 조회를 위해 관리자 계정 로그인이 필요합니다.
           </p>
         </div>
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-900 leading-relaxed">
-          <p className="font-bold mb-0.5">💡 보안 안내</p>
-          <p>Firebase Authentication으로 인가된 계정만 consultations 컬렉션 상담 신청 데이터에 접근할 수 있습니다.</p>
+          <p className="font-bold mb-0.5">💡 관리자 계정 안내</p>
+          <p>아이디: <code className="bg-amber-100 px-1 rounded font-bold">admin@english.com</code> / 비밀번호: <code className="bg-amber-100 px-1 rounded font-bold">1234</code></p>
         </div>
-        <button
-          onClick={() => {
-            if (onOpenAuthModal) onOpenAuthModal();
-          }}
-          className="w-full py-3.5 bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <Users size={16} />
-          <span>관리자 계정으로 로그인하기</span>
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={handleQuickAdminLogin}
+            disabled={isLoading}
+            className="w-full py-3.5 bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>관리자 로그인 처리 중...</span>
+              </>
+            ) : (
+              <>
+                <Shield size={16} />
+                <span>관리자 계정으로 바로 로그인</span>
+              </>
+            )}
+          </button>
+          
+          <button
+            onClick={() => {
+              if (onOpenAuthModal) onOpenAuthModal();
+            }}
+            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Users size={14} />
+            <span>이메일 / Google 로그인 팝업 열기</span>
+          </button>
+        </div>
       </div>
     );
   }

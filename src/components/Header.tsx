@@ -86,18 +86,16 @@ export default function Header({
                 마이페이지
               </button>
 
-              {currentUser.role === 'admin' && (
-                <button
-                  onClick={() => onNavigate('admin')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                    activeView === 'admin'
-                      ? 'bg-red-50 border-red-200 text-red-900 font-extrabold'
-                      : 'bg-slate-900 border-slate-950 text-white hover:bg-black'
-                  }`}
-                >
-                  관리 대시보드
-                </button>
-              )}
+              <button
+                onClick={() => onNavigate('admin')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                  activeView === 'admin'
+                    ? 'bg-red-50 border-red-200 text-red-900 font-extrabold'
+                    : 'bg-slate-900 border-slate-950 text-white hover:bg-black'
+                }`}
+              >
+                관리 대시보드
+              </button>
 
               <button
                 onClick={onLogout}
@@ -108,12 +106,20 @@ export default function Header({
               </button>
             </div>
           ) : (
-            <button
-              onClick={onOpenLogin}
-              className="px-4 py-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition-all"
-            >
-              로그인 / 가입
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onNavigate('admin')}
+                className="px-3 py-2 bg-slate-900 hover:bg-black text-white text-xs font-extrabold rounded-xl transition-all shadow-xs flex items-center gap-1"
+              >
+                <span>관리자 메뉴</span>
+              </button>
+              <button
+                onClick={onOpenLogin}
+                className="px-4 py-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition-all"
+              >
+                로그인 / 가입
+              </button>
+            </div>
           )}
         </div>
 

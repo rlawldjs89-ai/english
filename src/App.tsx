@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { User, Booking, UserRole } from './types';
 import { getCurrentUser, setCurrentUser, getBookings, saveBookings, subscribeBookings, fetchAndMergeServerBookings } from './lib/storage';
-import { auth, logoutFirebase } from './lib/firebase';
+import { auth, logoutFirebase, loginWithEmailOrAdmin } from './lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { mockTeachers } from './data/teachers';
 
@@ -96,17 +96,30 @@ export default function App() {
 
     // Listen to Firebase Auth state changes
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      const localUser = getCurrentUser();
       if (firebaseUser) {
+        const isAdmin = firebaseUser.email === 'admin@english.com' || localUser?.role === 'admin' || localUser?.email === 'admin@english.com';
         const appUser: User = {
           id: firebaseUser.uid,
-          email: firebaseUser.email || 'user@english.com',
-          name: firebaseUser.displayName || '온리원 회원',
-          role: firebaseUser.email === 'admin@english.com' ? 'admin' : 'student',
-          contact: firebaseUser.phoneNumber || '010-0000-0000',
-          createdAt: new Date().toISOString(),
+          email: firebaseUser.email || localUser?.email || (isAdmin ? 'admin@english.com' : 'user@english.com'),
+          name: firebaseUser.displayName || localUser?.name || (isAdmin ? '최고관리자' : '온리원 회원'),
+          role: isAdmin ? 'admin' : (localUser?.role || 'student'),
+          contact: firebaseUser.phoneNumber || localUser?.contact || '010-0000-0000',
+          region: localUser?.region,
+          gradeOrJob: localUser?.gradeOrJob,
+          createdAt: localUser?.createdAt || new Date().toISOString(),
         };
         setUser(appUser);
         setCurrentUser(appUser);
+      } else {
+        if (localUser) {
+          setUser(localUser);
+          if (localUser.role === 'admin' || localUser.email === 'admin@english.com') {
+            loginWithEmailOrAdmin('admin@english.com', '1234').catch((err) => {
+              console.warn("Auto re-authenticating admin session in background:", err);
+            });
+          }
+        }
       }
     });
 

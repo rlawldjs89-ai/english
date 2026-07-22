@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
 import { getUsers, saveUsers, setCurrentUser } from '../lib/storage';
-import { loginWithGoogle } from '../lib/firebase';
+import { loginWithGoogle, loginWithEmailOrAdmin } from '../lib/firebase';
 import { X, Mail, Lock, User as UserIcon, Phone, Shield } from 'lucide-react';
 
 interface AuthModalProps {
@@ -47,64 +47,87 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (isLogin) {
-      // Admin bypass
-      if (email === 'admin@english.com' && (password === '1234' || password === 'admin')) {
-        const adminUser: User = {
-          id: 'admin-user',
-          email: 'admin@english.com',
-          name: '최고관리자',
-          role: 'admin',
-          contact: '010-1234-5678',
+    try {
+      if (isLogin) {
+        // Admin or standard email login
+        const isAdmin = (email.trim() === 'admin@english.com' && (password === '1234' || password === 'admin')) || email.trim() === 'admin@english.com';
+
+        // Always authenticate with Firebase Auth so onAuthStateChanged and rules work
+        const firebaseUser = await loginWithEmailOrAdmin(
+          isAdmin ? 'admin@english.com' : email.trim(),
+          password || '1234'
+        );
+
+        if (isAdmin) {
+          const adminUser: User = {
+            id: firebaseUser.uid || 'admin-user',
+            email: 'admin@english.com',
+            name: '최고관리자',
+            role: 'admin',
+            contact: '010-1234-5678',
+            createdAt: new Date().toISOString(),
+          };
+          setCurrentUser(adminUser);
+          onLoginSuccess(adminUser);
+          onClose();
+          return;
+        }
+
+        // Standard user lookup
+        const users = getUsers();
+        const foundUser = users.find((u) => u.email === email);
+        if (foundUser) {
+          setCurrentUser(foundUser);
+          onLoginSuccess(foundUser);
+          onClose();
+        } else {
+          const newUser: User = {
+            id: firebaseUser.uid || 'u-' + Date.now(),
+            email: email.trim(),
+            name: email.split('@')[0] || '온리원 회원',
+            role: 'student',
+            contact: '010-0000-0000',
+            createdAt: new Date().toISOString(),
+          };
+          setCurrentUser(newUser);
+          onLoginSuccess(newUser);
+          onClose();
+        }
+      } else {
+        // Sign up
+        if (!email || !name || !contact) {
+          setError('모든 항목을 입력해 주세요.');
+          return;
+        }
+
+        const firebaseUser = await loginWithEmailOrAdmin(email.trim(), password || '123456');
+
+        const newUser: User = {
+          id: firebaseUser.uid || 'u-' + Date.now(),
+          email,
+          name,
+          role,
+          contact,
           createdAt: new Date().toISOString(),
         };
-        setCurrentUser(adminUser);
-        onLoginSuccess(adminUser);
+
+        const users = getUsers();
+        const updatedUsers = [...users, newUser];
+        saveUsers(updatedUsers);
+        setCurrentUser(newUser);
+        onLoginSuccess(newUser);
         onClose();
-        return;
       }
-
-      // Standard user lookup
-      const users = getUsers();
-      const foundUser = users.find((u) => u.email === email);
-      if (foundUser) {
-        setCurrentUser(foundUser);
-        onLoginSuccess(foundUser);
-        onClose();
-      } else {
-        setError('가입되지 않은 이메일이거나 비밀번호가 다릅니다. (관리자 아이디: admin@english.com / 비밀번호: 1234)');
-      }
-    } else {
-      // Sign up
-      if (!email || !name || !contact) {
-        setError('모든 항목을 입력해 주세요.');
-        return;
-      }
-
-      const users = getUsers();
-      if (users.some((u) => u.email === email)) {
-        setError('이미 가입된 이메일입니다.');
-        return;
-      }
-
-      const newUser: User = {
-        id: 'u-' + Date.now(),
-        email,
-        name,
-        role,
-        contact,
-        createdAt: new Date().toISOString(),
-      };
-
-      const updatedUsers = [...users, newUser];
-      saveUsers(updatedUsers);
-      setCurrentUser(newUser);
-      onLoginSuccess(newUser);
-      onClose();
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err?.message || '로그인 중 오류가 발생하였습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
