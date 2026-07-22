@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, UserRole } from '../types';
+import { User, UserRole, isAdminEmail } from '../types';
 import { getUsers, saveUsers, setCurrentUser } from '../lib/storage';
 import { loginWithGoogle, loginWithEmailOrAdmin } from '../lib/firebase';
 import { X, Mail, Lock, User as UserIcon, Phone, Shield } from 'lucide-react';
@@ -28,11 +28,12 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     try {
       const googleUser = await loginWithGoogle();
       if (googleUser) {
+        const isAdmin = isAdminEmail(googleUser.email);
         const appUser: User = {
           id: googleUser.uid,
           email: googleUser.email || 'google_user@english.com',
-          name: googleUser.displayName || '온리원 회원의',
-          role: 'student',
+          name: googleUser.displayName || (isAdmin ? '관리자' : '온리원 회원'),
+          role: isAdmin ? 'admin' : 'student',
           contact: googleUser.phoneNumber || '010-0000-0000',
           createdAt: new Date().toISOString(),
         };
@@ -54,20 +55,21 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
 
     try {
       if (isLogin) {
-        // Admin or standard email login
-        const isAdmin = (email.trim() === 'admin@english.com' && (password === '1234' || password === 'admin')) || email.trim() === 'admin@english.com';
+        // Check if email matches admin list or default admin password
+        const cleanEmail = email.trim().toLowerCase();
+        const isAdmin = isAdminEmail(cleanEmail) || (cleanEmail === 'admin@english.com' && (password === '1234' || password === 'admin'));
 
         // Always authenticate with Firebase Auth so onAuthStateChanged and rules work
         const firebaseUser = await loginWithEmailOrAdmin(
-          isAdmin ? 'admin@english.com' : email.trim(),
+          isAdmin ? (cleanEmail || 'admin@english.com') : cleanEmail,
           password || '1234'
         );
 
         if (isAdmin) {
           const adminUser: User = {
             id: firebaseUser.uid || 'admin-user',
-            email: 'admin@english.com',
-            name: '최고관리자',
+            email: cleanEmail || 'admin@english.com',
+            name: cleanEmail === 'rlawldjs89@gmail.com' ? '관리자 (rlawldjs89)' : '최고관리자',
             role: 'admin',
             contact: '010-1234-5678',
             createdAt: new Date().toISOString(),

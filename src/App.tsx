@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { User, Booking, UserRole } from './types';
+import { User, Booking, UserRole, isAdminEmail } from './types';
 import { getCurrentUser, setCurrentUser, getBookings, saveBookings, subscribeBookings, fetchAndMergeServerBookings } from './lib/storage';
 import { auth, logoutFirebase, loginWithEmailOrAdmin } from './lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -98,11 +98,11 @@ export default function App() {
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       const localUser = getCurrentUser();
       if (firebaseUser) {
-        const isAdmin = firebaseUser.email === 'admin@english.com' || localUser?.role === 'admin' || localUser?.email === 'admin@english.com';
+        const isAdmin = isAdminEmail(firebaseUser.email) || localUser?.role === 'admin' || isAdminEmail(localUser?.email);
         const appUser: User = {
           id: firebaseUser.uid,
-          email: firebaseUser.email || localUser?.email || (isAdmin ? 'admin@english.com' : 'user@english.com'),
-          name: firebaseUser.displayName || localUser?.name || (isAdmin ? '최고관리자' : '온리원 회원'),
+          email: firebaseUser.email || localUser?.email || (isAdmin ? 'rlawldjs89@gmail.com' : 'user@english.com'),
+          name: firebaseUser.displayName || localUser?.name || (isAdmin ? '관리자' : '온리원 회원'),
           role: isAdmin ? 'admin' : (localUser?.role || 'student'),
           contact: firebaseUser.phoneNumber || localUser?.contact || '010-0000-0000',
           region: localUser?.region,
@@ -114,8 +114,9 @@ export default function App() {
       } else {
         if (localUser) {
           setUser(localUser);
-          if (localUser.role === 'admin' || localUser.email === 'admin@english.com') {
-            loginWithEmailOrAdmin('admin@english.com', '1234').catch((err) => {
+          if (localUser.role === 'admin' || isAdminEmail(localUser.email)) {
+            const adminEmail = isAdminEmail(localUser.email) ? localUser.email : 'rlawldjs89@gmail.com';
+            loginWithEmailOrAdmin(adminEmail, '1234').catch((err) => {
               console.warn("Auto re-authenticating admin session in background:", err);
             });
           }

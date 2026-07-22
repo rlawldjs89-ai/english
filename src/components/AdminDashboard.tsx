@@ -344,14 +344,14 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   ];
 
   // Requirement #10: Firebase Authentication check for admin access
-  const handleQuickAdminLogin = async () => {
+  const handleQuickAdminLogin = async (targetEmail = 'rlawldjs89@gmail.com') => {
     try {
       setIsLoading(true);
-      const fbUser = await loginWithEmailOrAdmin('admin@english.com', '1234');
+      const fbUser = await loginWithEmailOrAdmin(targetEmail, '1234');
       const adminUser = {
         id: fbUser.uid || 'admin-user',
-        email: 'admin@english.com',
-        name: '최고관리자',
+        email: targetEmail,
+        name: targetEmail === 'rlawldjs89@gmail.com' ? '관리자 (rlawldjs89)' : '최고관리자',
         role: 'admin' as const,
         contact: '010-1234-5678',
         createdAt: new Date().toISOString(),
@@ -377,13 +377,14 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
             실시간 상담 신청 내역 조회를 위해 관리자 계정 로그인이 필요합니다.
           </p>
         </div>
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-900 leading-relaxed">
-          <p className="font-bold mb-0.5">💡 관리자 계정 안내</p>
-          <p>아이디: <code className="bg-amber-100 px-1 rounded font-bold">admin@english.com</code> / 비밀번호: <code className="bg-amber-100 px-1 rounded font-bold">1234</code></p>
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-900 leading-relaxed space-y-1">
+          <p className="font-bold">💡 등록된 관리자 계정</p>
+          <p className="break-all">• <code className="bg-amber-100 px-1 rounded font-bold text-amber-950">rlawldjs89@gmail.com</code> (지정 관리자)</p>
+          <p className="break-all">• <code className="bg-amber-100 px-1 rounded font-bold text-amber-950">admin@english.com</code> (기본 관리자 / 비번: 1234)</p>
         </div>
         <div className="space-y-2">
           <button
-            onClick={handleQuickAdminLogin}
+            onClick={() => handleQuickAdminLogin('rlawldjs89@gmail.com')}
             disabled={isLoading}
             className="w-full py-3.5 bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
@@ -395,7 +396,7 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
             ) : (
               <>
                 <Shield size={16} />
-                <span>관리자 계정으로 바로 로그인</span>
+                <span>rlawldjs89@gmail.com 계정으로 로그인</span>
               </>
             )}
           </button>

@@ -1,3 +1,11 @@
+export const ADMIN_EMAILS = ['admin@english.com', 'rlawldjs89@gmail.com'];
+
+export function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  return ADMIN_EMAILS.includes(normalized);
+}
+
 export type UserRole = 'parent' | 'student' | 'adult' | 'admin';
 
 export interface User {
