@@ -89,3 +89,18 @@ export interface FAQ {
   question: string;
   answer: string;
 }
+
+export interface Consultation {
+  id?: string;
+  name: string;             // 이름
+  contact: string;          // 연락처
+  grade: string;            // 학생 학년
+  subject: string;          // 희망 과목
+  classType: string;        // 수업 방식
+  preferredDate: string;    // 상담 희망일
+  preferredTimeSlot: string;// 상담 희망시간
+  content: string;          // 문의 내용
+  createdAt?: any;          // 신청일시 (serverTimestamp / ISO string)
+  status?: string;          // 상태 (예: 신청 접수)
+}
+

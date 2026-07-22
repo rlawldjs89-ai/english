@@ -4,9 +4,12 @@ import {
   collection, 
   doc, 
   setDoc, 
+  addDoc,
   deleteDoc, 
   onSnapshot, 
   query, 
+  orderBy,
+  serverTimestamp,
   getDocs,
   getDocFromServer
 } from 'firebase/firestore';
@@ -21,7 +24,7 @@ import {
   User as FirebaseUser
 } from 'firebase/auth';
 import config from '../../firebase-applet-config.json';
-import { Booking } from '../types';
+import { Booking, Consultation } from '../types';
 
 const app = !getApps().length ? initializeApp(config) : getApp();
 
@@ -72,6 +75,7 @@ testConnection();
 
 // Collection reference
 export const bookingsCol = collection(db, 'bookings');
+export const consultationsCol = collection(db, 'consultations');
 export const usersCol = collection(db, 'users');
 
 // Initial seed bookings
@@ -263,5 +267,78 @@ export async function loginWithGoogle() {
 
 export async function logoutFirebase() {
   return firebaseSignOut(auth);
+}
+
+// Add consultation to Firestore consultations collection
+export async function addConsultationToFirestore(
+  data: Omit<Consultation, 'id' | 'createdAt'>
+): Promise<string> {
+  try {
+    const docRef = await addDoc(consultationsCol, {
+      name: data.name || '',
+      contact: data.contact || '',
+      grade: data.grade || '',
+      subject: data.subject || '',
+      classType: data.classType || '',
+      preferredDate: data.preferredDate || '',
+      preferredTimeSlot: data.preferredTimeSlot || '',
+      content: data.content || '',
+      createdAt: serverTimestamp(),
+      status: data.status || '신청 접수',
+    });
+    return docRef.id;
+  } catch (err) {
+    console.error('Firestore Error adding consultation to consultations collection:', err);
+    handleFirestoreError(err, OperationType.CREATE, 'consultations');
+    throw err;
+  }
+}
+
+// Subscribe to consultations collection sorted by createdAt desc
+export function subscribeConsultations(
+  onData: (consultations: Consultation[]) => void,
+  onError: (error: Error) => void
+) {
+  const q = query(consultationsCol, orderBy('createdAt', 'desc'));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const list: Consultation[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        let formattedTime = '';
+        if (data.createdAt) {
+          if (typeof data.createdAt.toDate === 'function') {
+            formattedTime = data.createdAt.toDate().toISOString();
+          } else if (data.createdAt.seconds) {
+            formattedTime = new Date(data.createdAt.seconds * 1000).toISOString();
+          } else {
+            formattedTime = String(data.createdAt);
+          }
+        } else {
+          formattedTime = new Date().toISOString();
+        }
+
+        list.push({
+          id: docSnap.id,
+          name: data.name || '',
+          contact: data.contact || '',
+          grade: data.grade || '',
+          subject: data.subject || '',
+          classType: data.classType || '',
+          preferredDate: data.preferredDate || '',
+          preferredTimeSlot: data.preferredTimeSlot || '',
+          content: data.content || '',
+          createdAt: formattedTime,
+          status: data.status || '신청 접수',
+        });
+      });
+      onData(list);
+    },
+    (err) => {
+      console.error('Firestore consultations subscription error:', err);
+      onError(err);
+    }
+  );
 }
 

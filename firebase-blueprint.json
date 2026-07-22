@@ -1,5 +1,24 @@
 {
   "entities": {
+    "Consultation": {
+      "title": "Consultation",
+      "description": "Consultation application entries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "contact": { "type": "string" },
+        "grade": { "type": "string" },
+        "subject": { "type": "string" },
+        "classType": { "type": "string" },
+        "preferredDate": { "type": "string" },
+        "preferredTimeSlot": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["name", "contact"]
+    },
     "Booking": {
       "title": "Booking",
       "description": "Consultation and lesson booking application",
@@ -47,6 +66,10 @@
     }
   },
   "firestore": {
+    "/consultations/{consultationId}": {
+      "schema": { "$ref": "#/entities/Consultation" },
+      "description": "Consultation request entries submitted by users"
+    },
     "/bookings/{bookingId}": {
       "schema": { "$ref": "#/entities/Booking" },
       "description": "All consultation and lesson bookings"

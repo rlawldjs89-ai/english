@@ -1,21 +1,95 @@
 import React, { useState, useEffect } from 'react';
-import { Booking, BookingStatus, Teacher } from '../types';
+import { Booking, BookingStatus, Consultation, Teacher } from '../types';
 import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer, fetchAndMergeServerBookings, mergeBookings, subscribeBookings } from '../lib/storage';
+import { auth, subscribeConsultations } from '../lib/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { mockTeachers } from '../data/teachers';
 import { 
   Users, CheckCircle2, Clock, Eye, Edit3, Trash2, Search, Filter, 
-  Download, Calendar, Plus, RefreshCw, Bookmark, Award, HelpCircle, FileSpreadsheet, MapPin
+  Download, Calendar, Plus, RefreshCw, Bookmark, Award, HelpCircle, FileSpreadsheet, MapPin,
+  Shield, AlertCircle, Loader2
 } from 'lucide-react';
 
 interface AdminDashboardProps {
   bookings?: Booking[];
   onBookingsChange?: (updated: Booking[]) => void;
+  onOpenAuthModal?: () => void;
 }
 
-export default function AdminDashboard({ bookings: propBookings, onBookingsChange }: AdminDashboardProps) {
+export default function AdminDashboard({ bookings: propBookings, onBookingsChange, onOpenAuthModal }: AdminDashboardProps) {
+  const [authUser, setAuthUser] = useState<FirebaseUser | null>(auth.currentUser);
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   const [bookings, setBookings] = useState<Booking[]>(propBookings || []);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [lastSyncedTime, setLastSyncedTime] = useState<string>('');
+
+  // Firebase Auth listener
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      setAuthUser(user);
+    });
+    return () => unsubscribeAuth();
+  }, []);
+
+  // Real-time Firestore Subscription to 'consultations' collection (Requirement #6, #7, #8, #9)
+  useEffect(() => {
+    if (!authUser) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setFetchError(null);
+
+    const unsubscribeConsultations = subscribeConsultations(
+      (consultationList) => {
+        setConsultations(consultationList);
+        setIsLoading(false);
+        setFetchError(null);
+        setLastSyncedTime(new Date().toLocaleTimeString('ko-KR'));
+
+        // Map Consultation items to Booking type so existing UI, filtering, and stats work seamlessly
+        const mappedBookings: Booking[] = consultationList.map((c) => ({
+          id: c.id || 'c-' + Math.random(),
+          applicantName: c.name || '신청자',
+          contact: c.contact || '',
+          relationship: '본인',
+          studentName: c.name || '수강생',
+          studentAge: c.grade || '-',
+          gradeOrJob: c.grade || '-',
+          region: '온라인/방문',
+          currentLevel: '중급 (의사소통/학교내신)',
+          selectedCourse: c.subject || '일대일 영어',
+          classType: (c.classType as any) || '방문·화상 모두 상담 희망',
+          preferredDate: c.preferredDate || new Date().toISOString().slice(0, 10),
+          preferredTimeSlot: (c.preferredTimeSlot as any) || '평일 오후',
+          reason: c.content || '',
+          goals: '상담 신청 내역',
+          preferredTeacherGender: '무관',
+          status: (c.status as any) || '신청 접수',
+          createdAt: c.createdAt || new Date().toISOString()
+        }));
+
+        setBookings(mappedBookings);
+        calculateStats(mappedBookings);
+        if (onBookingsChange) {
+          onBookingsChange(mappedBookings);
+        }
+      },
+      (err: any) => {
+        console.error('Firestore consultations subscription error:', err);
+        setFetchError(err?.message || 'Firestore consultations 컬렉션에서 데이터를 불러오는 중 오류가 발생했습니다.');
+        setIsLoading(false);
+      }
+    );
+
+    return () => {
+      unsubscribeConsultations();
+    };
+  }, [authUser]);
   
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -268,6 +342,36 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
     '토익', '토플', '토익스피킹', '오픽', '아이엘츠', '기타 시험 대비'
   ];
 
+  // Requirement #10: Firebase Authentication check for admin access
+  if (!authUser) {
+    return (
+      <div className="max-w-md mx-auto my-16 bg-white border border-slate-200 p-8 rounded-3xl shadow-lg text-center space-y-5">
+        <div className="w-16 h-16 bg-blue-50 text-blue-900 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+          <Shield size={32} className="stroke-[2.5]" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-xl font-extrabold text-slate-900">관리자 전용 로그인 필요</h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            상담 신청 내역 조회를 위해 Firebase Authentication 관리자 계정 로그인이 필요합니다.
+          </p>
+        </div>
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-900 leading-relaxed">
+          <p className="font-bold mb-0.5">💡 보안 안내</p>
+          <p>Firebase Authentication으로 인가된 계정만 consultations 컬렉션 상담 신청 데이터에 접근할 수 있습니다.</p>
+        </div>
+        <button
+          onClick={() => {
+            if (onOpenAuthModal) onOpenAuthModal();
+          }}
+          className="w-full py-3.5 bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <Users size={16} />
+          <span>관리자 계정으로 로그인하기</span>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       {/* Admin Title Banner */}
@@ -447,13 +551,53 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {filteredBookings.length === 0 ? (
+              {/* Requirement #8: Loading State */}
+              {isLoading && (
                 <tr>
-                  <td colSpan={9} className="text-center py-12 text-slate-400 font-semibold">
-                    조회 조건에 만족하는 상담 신청 내역이 없습니다.
+                  <td colSpan={9} className="py-16 text-center text-slate-500 bg-slate-50/50">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <RefreshCw size={28} className="animate-spin text-blue-900" />
+                      <p className="text-xs font-bold text-slate-700">Firestore `consultations` 컬렉션 데이터를 로딩 중입니다...</p>
+                      <p className="text-[10px] text-slate-400">실시간 `onSnapshot` 연결을 기다리고 있습니다.</p>
+                    </div>
                   </td>
                 </tr>
-              ) : (
+              )}
+
+              {/* Requirement #8: Error State */}
+              {!isLoading && fetchError && (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center bg-rose-50/80 text-rose-700 border border-rose-100">
+                    <div className="flex flex-col items-center justify-center space-y-2 max-w-md mx-auto p-4">
+                      <AlertCircle size={32} className="text-rose-600" />
+                      <p className="text-xs font-extrabold text-rose-900">상담 신청 데이터 조회 실패</p>
+                      <p className="text-[11px] text-rose-700 leading-relaxed">{fetchError}</p>
+                      <button
+                        onClick={() => window.location.reload()}
+                        className="mt-2 px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg shadow-xs cursor-pointer"
+                      >
+                        새로고침 시도
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {/* Requirement #8: Empty State */}
+              {!isLoading && !fetchError && filteredBookings.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="text-center py-16 text-slate-400 font-semibold bg-slate-50/30">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <Users size={32} className="text-slate-300" />
+                      <p className="text-xs font-bold text-slate-600">등록된 상담 신청 내역이 없습니다.</p>
+                      <p className="text-[11px] text-slate-400">Firestore `consultations` 컬렉션에 새 신청이 저장되면 실시간으로 자동 표시됩니다.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {/* Data Rows */}
+              {!isLoading && !fetchError && filteredBookings.length > 0 && (
                 filteredBookings.map((b) => {
                   const statusColors = {
                     '신청 접수': 'bg-slate-100 text-slate-800',
@@ -465,17 +609,21 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
                     '정규수업 진행': 'bg-green-50 text-green-800',
                     '보류': 'bg-slate-100 text-slate-400',
                     '취소': 'bg-red-50 text-red-500',
-                  }[b.status];
+                  }[b.status] || 'bg-slate-100 text-slate-800';
+
+                  const formattedCreatedAt = b.createdAt
+                    ? (b.createdAt.length > 16 ? b.createdAt.slice(0, 10) + ' ' + b.createdAt.slice(11, 16) : b.createdAt.slice(0, 10))
+                    : '-';
 
                   return (
                     <tr key={b.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 text-slate-400 font-medium">
-                        {b.createdAt.slice(0, 10)}
+                        {formattedCreatedAt}
                       </td>
                       <td className="px-6 py-4 font-bold text-slate-900">
-                        {b.applicantName} <span className="text-[10px] text-slate-400">({b.relationship})</span>
+                        {b.applicantName}
                         <div className="text-[10px] font-normal text-slate-500 mt-0.5">
-                          학생: {b.studentName} ({b.studentAge}세)
+                          연락처: {b.contact}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-slate-600 font-semibold">
@@ -504,18 +652,18 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1.5">
                           <button
-                            onClick={() => handleOpenDetails(b)}
-                            className="p-1.5 text-slate-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors"
-                            title="상담 상세 및 배정"
+                            onClick={() => {
+                              setSelectedBooking(b);
+                              setEditStatus(b.status);
+                              setEditTeacherId(b.teacherId || '');
+                              setEditTrialDate(b.trialDate || '');
+                              setEditTrialTime(b.trialTime || '');
+                              setEditAdminMemo(b.adminMemo || '');
+                            }}
+                            className="px-2.5 py-1 text-xs font-semibold text-blue-900 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1"
                           >
-                            <Edit3 size={15} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteBooking(b.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                            title="삭제"
-                          >
-                            <Trash2 size={15} />
+                            <Eye size={12} />
+                            상세보기
                           </button>
                         </div>
                       </td>

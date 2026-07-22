@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, ArrowRight, MapPin, Video, Send, CheckCircle } from 'lucide-react';
+import { Calendar, ArrowRight, MapPin, Video, Send, CheckCircle, Loader2 } from 'lucide-react';
 import { getBookings, addBookingOnServer } from '../lib/storage';
+import { addConsultationToFirestore } from '../lib/firebase';
 import { Booking, User } from '../types';
 
 interface MainVisualProps {
@@ -25,6 +26,7 @@ export default function MainVisual({
   const [preferredCamp, setPreferredCamp] = useState('초등 기본영어');
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Change default grade/program based on category
   React.useEffect(() => {
@@ -48,9 +50,10 @@ export default function MainVisual({
     }
   }, [currentUser]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setIsSuccess(false);
 
     if (category === 'student') {
       if (!contact.trim()) {
@@ -85,37 +88,51 @@ export default function MainVisual({
       }
     }
 
-    // Generate Booking Record based on selected category
     const finalStudentName = category === 'adult' ? applicantName.trim() : studentName.trim();
-    const finalRelationship = category === 'adult' ? '본인' : '어머니';
-    const finalStudentAge = category === 'adult' ? '30' : '12';
+    const finalName = category === 'adult' ? applicantName.trim() : (studentName.trim() || applicantName.trim());
+    const finalReason = `[빠른 상담 신청] 분류: ${category === 'student' ? '학생용' : category === 'adult' ? '성인용' : '캠프용'} | 희망 프로그램: ${preferredCamp} | 학년/연령대: ${grade} | 수강생: ${finalStudentName}`;
 
-    const newBooking: Booking = {
-      id: 'b-' + Date.now(),
-      userId: currentUser?.id,
-      applicantName: category === 'student' ? studentName.trim() : applicantName.trim(),
-      contact: contact.trim(),
-      relationship: finalRelationship as any,
-      studentName: finalStudentName,
-      studentAge: finalStudentAge,
-      gradeOrJob: grade,
-      region: currentUser?.region || '서울 서초구',
-      currentLevel: '중급 (의사소통/학교내신)',
-      selectedCourse: preferredCamp,
-      classType: '방문·화상 모두 상담 희망',
-      preferredDate: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10), // Default to 2 days later
-      preferredTimeSlot: '평일 오후',
-      campExperience: '없음',
-      preferredCampLocation: category === 'camp' ? preferredCamp : undefined,
-      reason: `[빠른 상담 신청] 분류: ${category === 'student' ? '학생용' : category === 'adult' ? '성인용' : '캠프용'} | 희망 프로그램: ${preferredCamp} | 학년/연령대: ${grade} | 수강생: ${finalStudentName}`,
-      goals: category === 'camp' ? '해외 스쿨링 캠프 및 조기유학 맞춤 설계 상담' : '일대일 맞춤 빠른 무료 상담 및 수업 추천',
-      preferredTeacherGender: '무관',
-      status: '신청 접수',
-      createdAt: new Date().toISOString()
-    };
+    setIsSubmitting(true);
 
-    addBookingOnServer(newBooking).then((updatedList) => {
-      // Store submitted ID and contact in local storage for guest device tracking
+    try {
+      // Requirement 1, 2, 3: Save to Firestore consultations collection with serverTimestamp
+      await addConsultationToFirestore({
+        name: finalName,
+        contact: contact.trim(),
+        grade: grade,
+        subject: preferredCamp,
+        classType: '방문·화상 모두 상담 희망',
+        preferredDate: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
+        preferredTimeSlot: '평일 오후',
+        content: finalReason,
+        status: '신청 접수'
+      });
+
+      // Also create local/server booking sync for client app compatibility
+      const newBooking: Booking = {
+        id: 'b-' + Date.now(),
+        userId: currentUser?.id,
+        applicantName: category === 'student' ? studentName.trim() : applicantName.trim(),
+        contact: contact.trim(),
+        relationship: (category === 'adult' ? '본인' : '어머니') as any,
+        studentName: finalStudentName,
+        studentAge: category === 'adult' ? '30' : '12',
+        gradeOrJob: grade,
+        region: currentUser?.region || '서울 서초구',
+        currentLevel: '중급 (의사소통/학교내신)',
+        selectedCourse: preferredCamp,
+        classType: '방문·화상 모두 상담 희망',
+        preferredDate: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
+        preferredTimeSlot: '평일 오후',
+        reason: finalReason,
+        goals: category === 'camp' ? '해외 스쿨링 캠프 및 조기유학 맞춤 설계 상담' : '일대일 맞춤 빠른 무료 상담 및 수업 추천',
+        preferredTeacherGender: '무관',
+        status: '신청 접수',
+        createdAt: new Date().toISOString()
+      };
+      
+      const updatedList = await addBookingOnServer(newBooking);
+
       try {
         const existingIds = JSON.parse(localStorage.getItem('my_submitted_booking_ids') || '[]');
         if (!existingIds.includes(newBooking.id)) {
@@ -127,21 +144,26 @@ export default function MainVisual({
         console.error('Failed to store local booking id:', e);
       }
 
+      // Requirement 4: Show completion message ONLY after successful save
       setIsSuccess(true);
       setApplicantName('');
       setContact('');
       setStudentName('');
-      
+
       if (onBookingSuccess) {
         onBookingSuccess(updatedList);
       }
 
       setTimeout(() => {
         setIsSuccess(false);
-      }, 5000);
-    }).catch((err) => {
-      setErrorMsg('상담 예약 처리 중 문제가 발생했습니다. 다시 시도해 주세요.');
-    });
+      }, 6000);
+    } catch (err: any) {
+      // Requirement 5: Log error to console & show error message on screen
+      console.error('Consultation submission error:', err);
+      setErrorMsg(`상담 신청 저장 실패: ${err?.message || '네트워크 오류가 발생했습니다. 다시 시도해 주세요.'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -434,10 +456,20 @@ export default function MainVisual({
             {/* Submit Action Button */}
             <button
               type="submit"
-              className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-orange-500/10 flex items-center justify-center gap-1.5"
+              disabled={isSubmitting}
+              className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:opacity-60 text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-orange-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Send size={12} />
-              <span>3초 만에 상담 신청하기</span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Firestore 저장 중...</span>
+                </>
+              ) : (
+                <>
+                  <Send size={12} />
+                  <span>3초 만에 상담 신청하기</span>
+                </>
+              )}
             </button>
           </form>
         </div>

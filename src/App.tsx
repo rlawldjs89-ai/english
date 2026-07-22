@@ -289,6 +289,7 @@ export default function App() {
               setBookings(updated);
               setBookingCount(updated.length);
             }}
+            onOpenAuthModal={() => setIsAuthModalOpen(true)}
           />
         )}
       </main>
