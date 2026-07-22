@@ -33,10 +33,7 @@ export default function TeacherMatching() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight keep-all break-keep">
             아무 선생님이나<br className="block md:hidden" /> 연결해 드리지 않습니다.
           </h2>
-          <p className="text-xs sm:text-sm md:text-base text-slate-500 leading-relaxed keep-all break-keep">
-            수강생의 독특한 성향, 집중력 조건,<br className="block sm:hidden" /> 학습 목표와 어긋나는 매칭은<br className="block sm:hidden" /> 결코 성공적인 영어 결과로<br className="block sm:hidden" /> 귀결되기 매우 힘듭니다.<br className="hidden sm:inline" /> 
-            우리는 전수 심층 전화 인터뷰 및 교체 기준,<br className="block sm:hidden" /> 전임 선생님들의 철저한 인성 교직관 검증을 거친<br className="block sm:hidden" /> 정예 강사진만을 보유하고 있습니다.
-          </p>
+
         </div>
 
 
