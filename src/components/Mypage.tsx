@@ -34,19 +34,39 @@ export default function Mypage({ currentUser, onUserUpdate, onNavigateToBooking,
   useEffect(() => {
     // Refresh bookings
     const allBookings = propBookings || getBookings();
+
+    // Get device-tracked submitted booking IDs and contact
+    let mySubmittedIds: string[] = [];
+    try {
+      const mySubmittedIdsStr = localStorage.getItem('my_submitted_booking_ids');
+      if (mySubmittedIdsStr) mySubmittedIds = JSON.parse(mySubmittedIdsStr);
+    } catch (e) {}
+    const myContact = localStorage.getItem('my_last_submitted_contact') || '';
+
     if (currentUser) {
       if (currentUser.role === 'admin') {
-        setBookings(allBookings); // Admin sees everything in mypage too, or standard filter
+        setBookings(allBookings); // Admin sees everything
       } else {
-        // Filter by user ID, or applicant name/contact for non-authenticated guests
+        // Filter by user ID, contact, or device-submitted booking IDs
         const userBookings = allBookings.filter(
-          (b) => b.userId === currentUser.id || b.contact === currentUser.contact
+          (b) => b.userId === currentUser.id || 
+                 b.contact === currentUser.contact ||
+                 (myContact && b.contact === myContact) ||
+                 mySubmittedIds.includes(b.id)
         );
         setBookings(userBookings);
       }
     } else {
-      // Guest demo view showing some mock bookings so user can instantly play
-      setBookings(allBookings.slice(0, 2));
+      // Guest view: show bookings created on this device or matching last submitted contact
+      const guestBookings = allBookings.filter(
+        (b) => mySubmittedIds.includes(b.id) || (myContact && b.contact === myContact)
+      );
+      if (guestBookings.length > 0) {
+        setBookings(guestBookings);
+      } else {
+        // Default seed demo view for clean preview
+        setBookings(allBookings.slice(0, 2));
+      }
     }
   }, [currentUser, propBookings]);
 

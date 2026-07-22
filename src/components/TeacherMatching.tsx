@@ -1,4 +1,4 @@
-import { ShieldCheck, UserCheck2, ListTodo, ChevronRight, HelpCircle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ListTodo, ChevronRight, HelpCircle, ArrowRight } from 'lucide-react';
 
 export default function TeacherMatching() {
   const criteria = [
@@ -39,18 +39,7 @@ export default function TeacherMatching() {
           </p>
         </div>
 
-        {/* Guarantee Info Card */}
-        <div className="max-w-2xl mx-auto bg-white p-6 rounded-3xl border border-slate-100 flex flex-col sm:flex-row items-center gap-4 shadow-sm text-center sm:text-left">
-          <div className="p-4 bg-blue-50 text-blue-900 rounded-2xl shrink-0">
-            <UserCheck2 size={28} />
-          </div>
-          <div className="space-y-1">
-            <h4 className="text-xs font-extrabold text-slate-900">선생님 매칭 신뢰 보증제</h4>
-            <p className="text-[11px] text-slate-500 leading-relaxed keep-all break-keep">
-              체험수업 진행 후 불만족 시 담당 교육매니저가 학생에게 새로운 영어 선생님을 전면 비용 청구 없이 다시 수배해 연결해 드립니다.
-            </p>
-          </div>
-        </div>
+
 
         {/* Section Criteria Grid */}
         <div className="space-y-6">

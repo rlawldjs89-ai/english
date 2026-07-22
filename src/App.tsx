@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { User, Booking, UserRole } from './types';
-import { getCurrentUser, setCurrentUser, getBookings, saveBookings } from './lib/storage';
+import { getCurrentUser, setCurrentUser, getBookings, saveBookings, subscribeBookings } from './lib/storage';
 import { mockTeachers } from './data/teachers';
 
 // Component imports
@@ -88,14 +88,18 @@ export default function App() {
       }
     }
 
-    // Run initial sync right away
+    // Subscribe to Firestore real-time updates across all devices (PC, Mobile, Admin)
+    const unsubscribe = subscribeBookings((latestBookings) => {
+      setBookings(latestBookings);
+      setBookingCount(latestBookings.length);
+      localStorage.setItem('bookings_v1', JSON.stringify(latestBookings));
+    });
+
+    // Run initial sync right away as backup
     syncBookingsFromServer();
 
-    // Set up polling interval every 5 seconds for automatic background synchronization
-    const intervalId = setInterval(syncBookingsFromServer, 5000);
-
     return () => {
-      clearInterval(intervalId);
+      unsubscribe();
     };
   }, []);
 
@@ -274,25 +278,17 @@ export default function App() {
       <footer className="bg-slate-900 text-white py-12 border-t border-slate-800 text-left">
         <div className="max-w-7xl mx-auto px-4 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start border-b border-slate-800 pb-8">
-            <div className="md:col-span-5 space-y-3">
+            <div className="md:col-span-7 space-y-3">
               <h3 className="text-lg font-black text-white tracking-tight">OnlyOne English</h3>
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
                 유아 파닉스부터 중고등 내신 지필, 성인 실무 영어 회화, 자격 시험 준비까지 완벽한 스케줄 매칭 및 최적화 영어 솔루션을 제시하는 전담 과외 매치센터입니다.
               </p>
             </div>
 
-            <div className="md:col-span-4 space-y-2.5 text-xs text-slate-400">
+            <div className="md:col-span-5 space-y-2.5 text-xs text-slate-400">
               <h4 className="font-bold text-slate-200">고객 지원 및 해피콜 운영</h4>
               <p>학습 지원 팀장 : <span className="text-slate-300 font-medium">김지언</span></p>
               <p>교육 상담 문의 : <strong className="text-white text-sm">010-2256-5454</strong></p>
-            </div>
-
-            <div className="md:col-span-3 space-y-3 text-xs">
-              <h4 className="font-bold text-slate-200">인증 획득 사항</h4>
-              <div className="flex gap-2">
-                <span className="bg-slate-800 px-2 py-1.5 rounded text-[10px] text-slate-400 font-bold">영어교육 인증기관</span>
-                <span className="bg-slate-800 px-2 py-1.5 rounded text-[10px] text-slate-400 font-bold">개인정보 보호 준수</span>
-              </div>
             </div>
           </div>
 

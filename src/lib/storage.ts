@@ -1,4 +1,15 @@
 import { User, Booking, UserRole } from '../types';
+import { 
+  saveBookingToFirestore, 
+  deleteBookingFromFirestore, 
+  subscribeBookings as subscribeFirestoreBookings, 
+  seedBookingsIfEmpty 
+} from './firebase';
+
+export { subscribeFirestoreBookings as subscribeBookings };
+
+// Initialize Firestore seed if empty
+seedBookingsIfEmpty().catch(console.error);
 
 // Default mock admin user
 export const DEFAULT_ADMIN: User = {
@@ -139,6 +150,8 @@ export function getBookings(): Booking[] {
 
 export function saveBookings(bookings: Booking[]): void {
   localStorage.setItem('bookings_v1', JSON.stringify(bookings));
+  // Background sync with Firestore
+  bookings.forEach(b => saveBookingToFirestore(b).catch(console.error));
   // Background API POST to sync with server
   fetch('/api/bookings', {
     method: 'POST',
@@ -152,6 +165,8 @@ export function saveBookings(bookings: Booking[]): void {
 }
 
 export async function addBookingOnServer(booking: Booking): Promise<Booking[]> {
+  // Sync to Firestore immediately
+  saveBookingToFirestore(booking).catch(console.error);
   try {
     const res = await fetch('/api/bookings/add', {
       method: 'POST',
@@ -175,6 +190,8 @@ export async function addBookingOnServer(booking: Booking): Promise<Booking[]> {
 }
 
 export async function updateBookingOnServer(booking: Booking): Promise<Booking[]> {
+  // Sync to Firestore immediately
+  saveBookingToFirestore(booking).catch(console.error);
   try {
     const res = await fetch('/api/bookings/update', {
       method: 'POST',
@@ -198,6 +215,8 @@ export async function updateBookingOnServer(booking: Booking): Promise<Booking[]
 }
 
 export async function deleteBookingOnServer(id: string): Promise<Booking[]> {
+  // Delete from Firestore immediately
+  deleteBookingFromFirestore(id).catch(console.error);
   try {
     const res = await fetch('/api/bookings/delete', {
       method: 'POST',

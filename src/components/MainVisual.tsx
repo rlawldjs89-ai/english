@@ -115,6 +115,18 @@ export default function MainVisual({
     };
 
     addBookingOnServer(newBooking).then((updatedList) => {
+      // Store submitted ID and contact in local storage for guest device tracking
+      try {
+        const existingIds = JSON.parse(localStorage.getItem('my_submitted_booking_ids') || '[]');
+        if (!existingIds.includes(newBooking.id)) {
+          existingIds.push(newBooking.id);
+          localStorage.setItem('my_submitted_booking_ids', JSON.stringify(existingIds));
+        }
+        localStorage.setItem('my_last_submitted_contact', newBooking.contact);
+      } catch (e) {
+        console.error('Failed to store local booking id:', e);
+      }
+
       setIsSuccess(true);
       setApplicantName('');
       setContact('');

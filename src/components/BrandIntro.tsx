@@ -51,7 +51,7 @@ export default function BrandIntro() {
             “늦게 시작하는 배움이란 결코 존재하지 않습니다. 남들의 진도 지표에 조급해할 필요도 없습니다. 
             내 보폭에 딱 맞추어 출발하는 오늘 한 번의 솔직한 시도가 평생 영어의 말문을 틔웁니다.”
           </blockquote>
-          <p className="text-xs text-slate-400 font-bold">— 영어 교육 연구소 일대일 배정 위원단</p>
+          <p className="text-xs text-slate-400 font-bold">- OnlyOneEnglish -</p>
         </div>
 
         {/* Values Cards */}
