@@ -38,6 +38,19 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   }, []);
 
   // Real-time Firestore Subscription to 'consultations' collection
+  const consultationBookingsRef = React.useRef<Booking[]>([]);
+
+  const combineAndSetBookings = (extraBookings: Booking[] = []) => {
+    const consultations = consultationBookingsRef.current;
+    const combined = mergeBookings(consultations, extraBookings);
+    setBookings(combined);
+    calculateStats(combined);
+    setLastSyncedTime(new Date().toLocaleTimeString('ko-KR'));
+    if (onBookingsChange) {
+      onBookingsChange(combined);
+    }
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setFetchError(null);
@@ -47,7 +60,6 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
         setConsultations(consultationList);
         setIsLoading(false);
         setFetchError(null);
-        setLastSyncedTime(new Date().toLocaleTimeString('ko-KR'));
 
         // Map Consultation items to Booking type so existing UI, filtering, and stats work seamlessly
         const mappedBookings: Booking[] = consultationList.map((c) => ({
@@ -71,11 +83,8 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
           createdAt: c.createdAt || new Date().toISOString()
         }));
 
-        setBookings(mappedBookings);
-        calculateStats(mappedBookings);
-        if (onBookingsChange) {
-          onBookingsChange(mappedBookings);
-        }
+        consultationBookingsRef.current = mappedBookings;
+        combineAndSetBookings(bookings);
       },
       (err: any) => {
         console.error('Firestore consultations subscription error:', err);
@@ -122,26 +131,18 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   const loadData = async () => {
     try {
       const mergedList = await fetchAndMergeServerBookings();
-      setBookings(mergedList);
-      calculateStats(mergedList);
-      setLastSyncedTime(new Date().toLocaleTimeString('ko-KR'));
-      if (onBookingsChange) {
-        onBookingsChange(mergedList);
-      }
+      combineAndSetBookings(mergedList);
     } catch (err) {
       console.warn('Failed to load server bookings, falling back to local storage:', err);
       const list = getBookings();
-      setBookings(list);
-      calculateStats(list);
+      combineAndSetBookings(list);
     }
   };
 
   useEffect(() => {
     // Merge propBookings if provided with local storage items
     if (propBookings && propBookings.length > 0) {
-      const merged = mergeBookings(bookings, propBookings);
-      setBookings(merged);
-      calculateStats(merged);
+      combineAndSetBookings(propBookings);
     }
   }, [propBookings]);
 
@@ -154,23 +155,12 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
       if (firestoreBookings && firestoreBookings.length > 0) {
         const localList = getBookings();
         const merged = mergeBookings(localList, firestoreBookings);
-        setBookings(merged);
-        calculateStats(merged);
-        setLastSyncedTime(new Date().toLocaleTimeString('ko-KR'));
-        if (onBookingsChange) {
-          onBookingsChange(merged);
-        }
+        combineAndSetBookings(merged);
       }
     });
 
-    // Auto polling every 3 seconds as backup for server memory sync
-    const intervalId = setInterval(() => {
-      loadData();
-    }, 3000);
-
     return () => {
       unsubscribeFirestore();
-      clearInterval(intervalId);
     };
   }, []);
 
