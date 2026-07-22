@@ -135,6 +135,40 @@ const seedBookings: Booking[] = [
   }
 ];
 
+// Utility to merge two lists of bookings without losing any data or duplicating
+export function mergeBookings(listA: Booking[], listB: Booking[]): Booking[] {
+  const map = new Map<string, Booking>();
+
+  for (const item of listA) {
+    if (item && item.id) {
+      map.set(item.id, item);
+    }
+  }
+
+  for (const item of listB) {
+    if (item && item.id) {
+      const existing = map.get(item.id);
+      if (!existing) {
+        map.set(item.id, item);
+      } else {
+        // Merge fields: prefer item values if available, retaining status/memo edits
+        const merged: Booking = {
+          ...existing,
+          ...item,
+          adminMemo: item.adminMemo || existing.adminMemo,
+          status: (item.status && item.status !== '신청 접수' ? item.status : existing.status) || item.status,
+          teacherId: item.teacherId || existing.teacherId,
+        };
+        map.set(item.id, merged);
+      }
+    }
+  }
+
+  const result = Array.from(map.values());
+  result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return result;
+}
+
 export function getBookings(): Booking[] {
   const local = localStorage.getItem('bookings_v1');
   if (!local) {
@@ -142,23 +176,53 @@ export function getBookings(): Booking[] {
     return seedBookings;
   }
   try {
-    return JSON.parse(local);
+    const parsed = JSON.parse(local);
+    return mergeBookings(seedBookings, parsed);
   } catch (e) {
     return seedBookings;
   }
 }
 
+export async function fetchAndMergeServerBookings(): Promise<Booking[]> {
+  const local = getBookings();
+  let serverList: Booking[] = [];
+  try {
+    const res = await fetch('/api/bookings?t=' + Date.now());
+    if (res.ok) {
+      serverList = await res.json();
+    }
+  } catch (e) {
+    console.warn('Failed to fetch bookings from server API:', e);
+  }
+
+  const merged = mergeBookings(local, serverList);
+  localStorage.setItem('bookings_v1', JSON.stringify(merged));
+  
+  // If merged has items that server didn't have, sync back to server
+  if (merged.length > serverList.length) {
+    fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookings: merged }),
+    }).catch(() => {});
+  }
+
+  return merged;
+}
+
 export function saveBookings(bookings: Booking[]): void {
-  localStorage.setItem('bookings_v1', JSON.stringify(bookings));
+  const current = getBookings();
+  const merged = mergeBookings(current, bookings);
+  localStorage.setItem('bookings_v1', JSON.stringify(merged));
   // Background sync with Firestore
-  bookings.forEach(b => saveBookingToFirestore(b).catch(console.error));
+  merged.forEach(b => saveBookingToFirestore(b).catch(console.error));
   // Background API POST to sync with server
   fetch('/api/bookings', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ bookings }),
+    body: JSON.stringify({ bookings: merged }),
   }).catch((e) => {
     console.warn('Failed to sync booking data to server:', e);
   });
@@ -167,6 +231,12 @@ export function saveBookings(bookings: Booking[]): void {
 export async function addBookingOnServer(booking: Booking): Promise<Booking[]> {
   // Sync to Firestore immediately
   saveBookingToFirestore(booking).catch(console.error);
+  
+  // Save locally first
+  const current = getBookings();
+  const mergedLocal = mergeBookings([booking], current);
+  localStorage.setItem('bookings_v1', JSON.stringify(mergedLocal));
+
   try {
     const res = await fetch('/api/bookings/add', {
       method: 'POST',
@@ -176,22 +246,26 @@ export async function addBookingOnServer(booking: Booking): Promise<Booking[]> {
       body: JSON.stringify({ booking }),
     });
     if (res.ok) {
-      const updated = await res.json();
-      localStorage.setItem('bookings_v1', JSON.stringify(updated));
-      return updated;
+      const serverResult = await res.json();
+      const finalMerged = mergeBookings(mergedLocal, serverResult);
+      localStorage.setItem('bookings_v1', JSON.stringify(finalMerged));
+      return finalMerged;
     }
   } catch (e) {
     console.error('Failed to add booking on server, using local:', e);
   }
-  const current = getBookings();
-  const updated = [booking, ...current];
-  localStorage.setItem('bookings_v1', JSON.stringify(updated));
-  return updated;
+
+  return mergedLocal;
 }
 
 export async function updateBookingOnServer(booking: Booking): Promise<Booking[]> {
   // Sync to Firestore immediately
   saveBookingToFirestore(booking).catch(console.error);
+  
+  const current = getBookings();
+  const updatedLocal = current.map(b => b.id === booking.id ? booking : b);
+  localStorage.setItem('bookings_v1', JSON.stringify(updatedLocal));
+
   try {
     const res = await fetch('/api/bookings/update', {
       method: 'POST',
@@ -201,22 +275,26 @@ export async function updateBookingOnServer(booking: Booking): Promise<Booking[]
       body: JSON.stringify({ booking }),
     });
     if (res.ok) {
-      const updated = await res.json();
-      localStorage.setItem('bookings_v1', JSON.stringify(updated));
-      return updated;
+      const serverResult = await res.json();
+      const finalMerged = mergeBookings(updatedLocal, serverResult);
+      localStorage.setItem('bookings_v1', JSON.stringify(finalMerged));
+      return finalMerged;
     }
   } catch (e) {
     console.error('Failed to update booking on server, using local:', e);
   }
-  const current = getBookings();
-  const updated = current.map(b => b.id === booking.id ? booking : b);
-  localStorage.setItem('bookings_v1', JSON.stringify(updated));
-  return updated;
+
+  return updatedLocal;
 }
 
 export async function deleteBookingOnServer(id: string): Promise<Booking[]> {
   // Delete from Firestore immediately
   deleteBookingFromFirestore(id).catch(console.error);
+  
+  const current = getBookings();
+  const updatedLocal = current.filter(b => b.id !== id);
+  localStorage.setItem('bookings_v1', JSON.stringify(updatedLocal));
+
   try {
     const res = await fetch('/api/bookings/delete', {
       method: 'POST',
@@ -226,17 +304,15 @@ export async function deleteBookingOnServer(id: string): Promise<Booking[]> {
       body: JSON.stringify({ id }),
     });
     if (res.ok) {
-      const updated = await res.json();
-      localStorage.setItem('bookings_v1', JSON.stringify(updated));
-      return updated;
+      const serverResult = await res.json();
+      localStorage.setItem('bookings_v1', JSON.stringify(serverResult));
+      return serverResult;
     }
   } catch (e) {
     console.error('Failed to delete booking on server, using local:', e);
   }
-  const current = getBookings();
-  const updated = current.filter(b => b.id !== id);
-  localStorage.setItem('bookings_v1', JSON.stringify(updated));
-  return updated;
+
+  return updatedLocal;
 }
 
 export function getUsers(): User[] {

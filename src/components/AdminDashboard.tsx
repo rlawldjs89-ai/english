@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Booking, BookingStatus, Teacher } from '../types';
-import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer } from '../lib/storage';
+import { getBookings, saveBookings, updateBookingOnServer, deleteBookingOnServer, fetchAndMergeServerBookings, mergeBookings } from '../lib/storage';
 import { mockTeachers } from '../data/teachers';
 import { 
   Users, CheckCircle2, Clock, Eye, Edit3, Trash2, Search, Filter, 
@@ -15,6 +15,7 @@ interface AdminDashboardProps {
 export default function AdminDashboard({ bookings: propBookings, onBookingsChange }: AdminDashboardProps) {
   const [bookings, setBookings] = useState<Booking[]>(propBookings || []);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [lastSyncedTime, setLastSyncedTime] = useState<string>('');
   
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,35 +47,45 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
     canceled: 0,
   });
 
-  const loadData = () => {
-    fetch('/api/bookings?t=' + Date.now())
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw new Error('Server returned non-ok status');
-      })
-      .then((data) => {
-        setBookings(data);
-        calculateStats(data);
-        if (onBookingsChange) {
-          onBookingsChange(data);
-        }
-      })
-      .catch((err) => {
-        console.warn('Failed to load server bookings, falling back to local storage:', err);
-        const list = getBookings();
-        setBookings(list);
-        calculateStats(list);
-      });
+  const loadData = async () => {
+    try {
+      const mergedList = await fetchAndMergeServerBookings();
+      setBookings(mergedList);
+      calculateStats(mergedList);
+      setLastSyncedTime(new Date().toLocaleTimeString('ko-KR'));
+      if (onBookingsChange) {
+        onBookingsChange(mergedList);
+      }
+    } catch (err) {
+      console.warn('Failed to load server bookings, falling back to local storage:', err);
+      const list = getBookings();
+      setBookings(list);
+      calculateStats(list);
+    }
   };
 
   useEffect(() => {
+    // Merge propBookings if provided with local storage items
     if (propBookings && propBookings.length > 0) {
-      setBookings(propBookings);
-      calculateStats(propBookings);
-    } else {
-      loadData();
+      const merged = mergeBookings(bookings, propBookings);
+      setBookings(merged);
+      calculateStats(merged);
     }
   }, [propBookings]);
+
+  useEffect(() => {
+    // Initial fetch on mount
+    loadData();
+
+    // Auto polling every 3 seconds for live multi-device consultation submissions
+    const intervalId = setInterval(() => {
+      loadData();
+    }, 3000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
 
   // Filter Logic
   useEffect(() => {
@@ -248,9 +259,9 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 p-6 md:p-8 rounded-3xl text-white shadow-lg">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Live Administration Console
+            <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
+            <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
+              실시간 자동 동기화 활성화됨 {lastSyncedTime ? `(${lastSyncedTime} 동기화)` : ''}
             </span>
           </div>
           <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">상담 및 예약 관리 대시보드</h2>

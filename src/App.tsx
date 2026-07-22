@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { User, Booking, UserRole } from './types';
-import { getCurrentUser, setCurrentUser, getBookings, saveBookings, subscribeBookings } from './lib/storage';
+import { getCurrentUser, setCurrentUser, getBookings, saveBookings, subscribeBookings, fetchAndMergeServerBookings } from './lib/storage';
 import { mockTeachers } from './data/teachers';
 
 // Component imports
@@ -54,16 +54,9 @@ export default function App() {
   // Server-side real-time sync (PC <-> Mobile sync)
   const syncBookingsFromServer = async () => {
     try {
-      const res = await fetch('/api/bookings?t=' + Date.now());
-      if (res.ok) {
-        const serverBookings = await res.json();
-        const localStr = localStorage.getItem('bookings_v1');
-        if (JSON.stringify(serverBookings) !== localStr) {
-          localStorage.setItem('bookings_v1', JSON.stringify(serverBookings));
-          setBookings(serverBookings);
-          setBookingCount(serverBookings.length);
-        }
-      }
+      const mergedList = await fetchAndMergeServerBookings();
+      setBookings(mergedList);
+      setBookingCount(mergedList.length);
     } catch (err) {
       console.warn("Failed to sync bookings from server:", err);
     }

@@ -163,8 +163,19 @@ async function startServer() {
   app.post("/api/bookings", (req, res) => {
     const { bookings } = req.body;
     if (Array.isArray(bookings)) {
-      saveBookings(bookings);
-      res.json({ success: true, count: bookings.length });
+      const current = getBookings();
+      const map = new Map<string, any>();
+      current.forEach((b: any) => { if (b && b.id) map.set(b.id, b); });
+      bookings.forEach((b: any) => {
+        if (b && b.id) {
+          const existing = map.get(b.id);
+          map.set(b.id, existing ? { ...existing, ...b } : b);
+        }
+      });
+      const merged = Array.from(map.values());
+      merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      saveBookings(merged);
+      res.json({ success: true, count: merged.length });
     } else {
       res.status(400).json({ error: "Invalid bookings data format" });
     }
