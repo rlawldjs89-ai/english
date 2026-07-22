@@ -127,7 +127,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err?.message || '로그인 중 오류가 발생하였습니다.');
+      let msg = err?.message || '로그인 중 오류가 발생하였습니다.';
+      if (msg.includes('auth/admin-restricted-operation') || msg.includes('operation-not-allowed')) {
+        msg = 'Firebase 콘솔에서 이메일/비밀번호 인증이 차단되어 있습니다. 상단의 [Google 계정으로 빠른 로그인]을 사용하시면 즉시 로그인됩니다!';
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
