@@ -3,8 +3,8 @@ import { ShieldCheck, ListTodo, ChevronRight, HelpCircle, ArrowRight } from 'luc
 export default function TeacherMatching() {
   const criteria = [
     { title: '학습자 연령대', desc: '유아/초등/중등/고등/성인/시니어 최적 강사 매칭' },
-    { title: '현재 영어 수준', desc: '왕초보, 기초, 중급 내신, 수능/토론 상급 등 확인' },
-    { title: '명확한 수업 목적', desc: '내신 만점, 회화 입트기, 인증시험 점수 단기 획득 등' },
+    { title: '과목 및 학습 수준', desc: '국·영·수·사·과 교과 단계 및 회화(영/일/중) 수준 확인' },
+    { title: '명확한 수업 목적', desc: '내신 만점, 수능 1등급, 회화 입트기, 자격증 단기 획득 등' },
     { title: '요일 및 희망 시간', desc: '평일 오전/오후/저녁 또는 주말 스케줄 보장 매칭' },
     { title: '방문 vs 화상', desc: '거주 지역 반경 내 직접 방문 또는 스마트 화상 배정' },
     { title: '선호 수업 스타일', desc: '꼼꼼하고 체계적인 스타일 vs 재미있고 활발한 눈높이형' },
@@ -31,7 +31,7 @@ export default function TeacherMatching() {
             Rigorous Tutor Selection & Steps
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight keep-all break-keep">
-            아무 선생님이나<br className="block md:hidden" /> 연결해 드리지 않습니다.
+            과목별 전문 선생님과<br className="block md:hidden" /> 함께합니다.
           </h2>
 
         </div>

@@ -3,23 +3,23 @@ import { Target, ShieldCheck, Heart, UserCheck } from 'lucide-react';
 export default function BrandIntro() {
   const values = [
     {
-      title: '개인 맞춤주의 교육 철학',
-      desc: '일률적인 대형 강의나 진도 빼기 수업에서 상처받고 소외되는 학생이 단 한 명도 없도록 수강생 고유의 개별 속도와 심리적 안정감을 극대화한 영어 교육만을 실현합니다.',
+      title: '전과목 1:1 맞춤 교육 철학',
+      desc: '일률적인 대형 강의나 진도 빼기 수업에서 소외되는 학생이 없도록, 국어·영어·수학·사회·과학 교과부터 외국어 회화까지 수강생 고유의 개별 속도와 눈높이에 맞춘 교육을 실현합니다.',
       icon: <Target className="text-blue-900" size={20} />
     },
     {
-      title: '엄격한 인성과 실력 보증',
-      desc: '우수한 학력과 이력 증빙 서류는 기본입니다. 학생을 진심으로 안아주고 기운을 북돋을 수 있는 전인격 인성 검증 및 교수법 프레임 검정을 마친 전담 강사단만을 배정합니다.',
+      title: '엄격한 과목별 전문 강사진',
+      desc: '과목별 전공 및 출신 학력과 지도 이력 검증은 기본입니다. 학습자의 취약점을 꿰뚫고 성취도를 끌어올릴 수 있는 검증된 과목별 전담 강사단만을 엄선 배정합니다.',
       icon: <ShieldCheck className="text-blue-900" size={20} />
     },
     {
       title: '밀착 소통 케어 매니지먼트',
-      desc: '수업이 끝나면 실시간 학부모 소통 리포트 및 카톡 질문 응대, 월별 실력 진단표가 무상 제공됩니다. 강사와 수강생, 교육매니저 3자 밀착 소통망이 구축됩니다.',
+      desc: '수업이 끝나면 실시간 학부모 소통 리포트 및 카톡 질문 응대, 월별 성취도 진단표가 제공됩니다. 강사와 수강생, 교육매니저 3자 밀착 소통망으로 꼼꼼히 관리합니다.',
       icon: <Heart className="text-blue-900" size={20} />
     },
     {
-      title: '100% 무위험 체험 수업제',
-      desc: '선생님과 수업 스타일이 완전히 일치하는지, 이해가 명쾌히 되는지 결정을 돕기 위해, 언제든 주저 없이 무료 시범 수업을 직접 받아보고 판단해 보실 수 있습니다.',
+      title: '무료 체험 수업 진행',
+      desc: '선생님과 수업 스타일이 완전히 일치하는지, 설명이 명쾌하게 와닿는지 결정을 돕기 위해, 언제든 무료 시범 수업을 직접 받아보고 정규 수업 여부를 결정하실 수 있습니다.',
       icon: <UserCheck className="text-blue-900" size={20} />
     }
   ];
@@ -34,13 +34,13 @@ export default function BrandIntro() {
             Our Identity & Philosophy
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight keep-all break-keep">
-            영어가 즐거워지는 기적,<br className="block md:hidden" /> 일대일 맞춤 교육으로<br className="block md:hidden" /> 완성됩니다.
+            공부가 즐거워지는 기적,<br className="block md:hidden" /> 일대일 맞춤 교육으로<br className="block md:hidden" /> 완성됩니다.
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-500 leading-relaxed keep-all break-keep">
-            우리는 단순 주입식 시험 문제를 대행해 주는<br className="block sm:hidden" /> 파트타임 과외가 아닙니다.<br className="hidden sm:inline" /> 
-            유아기 영어 소리 떼기부터 초등의 독서 흥미,<br className="block sm:hidden" /> 중고등의 지독한 내신 지필과 서술형 수능 극복,<br className="hidden sm:inline" /> 
-            성인의 비즈니스 생존 회화 및<br className="block sm:hidden" /> 시니어 어르신들의 은빛 영어 활기까지<br className="hidden sm:inline" /> 
-            <strong>전담 선생님의 집중 에너지</strong>를 오롯이 한 명에게<br className="block sm:hidden" /> 쏟아붓는 명문 일대일 학습 파트너입니다.
+            우리는 단순 문제풀이만 대행하는 파트타임 과외가 아닙니다.<br className="hidden sm:inline" /> 
+            유아기 기초 학습부터 초·중·고 <strong>국어·영어·수학·사회·과학</strong> 전과목 내신 지필과 서술형·수능 대비,<br className="hidden sm:inline" /> 
+            그리고 성인·직장인의 실전 <strong>영어회화·일본어회화·중국어회화</strong>까지<br className="hidden sm:inline" /> 
+            <strong>과목별 전담 선생님의 집중 에너지</strong>를 오롯이 한 명에게 쏟아붓는 명문 일대일 맞춤 학습 파트너입니다.
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export default function BrandIntro() {
           <span className="text-[10px] text-orange-400 font-extrabold uppercase tracking-widest">Educational Promise</span>
           <blockquote className="text-sm md:text-base font-bold italic leading-relaxed text-slate-100 keep-all break-keep">
             “늦게 시작하는 배움이란 결코 존재하지 않습니다. 남들의 진도 지표에 조급해할 필요도 없습니다. 
-            내 보폭에 딱 맞추어 출발하는 오늘 한 번의 솔직한 시도가 평생 영어의 말문을 틔웁니다.”
+            내 보폭에 딱 맞추어 출발하는 오늘 한 번의 솔직한 시도가 성적 향상과 자신감의 문을 엽니다.”
           </blockquote>
           <p className="text-xs text-slate-400 font-bold">- Only One Study -</p>
         </div>

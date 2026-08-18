@@ -5,19 +5,19 @@ export default function Benefits() {
     {
       id: '01',
       title: '일대일 맞춤 커리큘럼',
-      desc: '학생의 실력과 학습 목적을 정확히 파악한 후, 개인 속도와 이해도에 맞추어 보완해야 할 영어 역량을 맞춤형으로 촘촘하게 설계해 나갑니다.',
+      desc: '학생의 실력과 학습 목적을 정확히 파악한 후, 개인 속도와 이해도에 맞추어 보완해야 할 과목별 핵심 역량을 맞춤형으로 촘촘하게 설계해 나갑니다.',
       icon: <Sliders className="text-blue-900" size={24} />
     },
     {
       id: '02',
-      title: '영어 전문 선생님 배정',
-      desc: '학습자의 세부 연령대, 목표(내신/회화/인증), 요일 및 희망 교과스타일을 기반으로 가장 적격하고 전문성을 검증받은 전담 강사님만을 성실히 엄선 매칭합니다.',
+      title: '과목별 전문 선생님 배정',
+      desc: '학습자의 세부 연령대, 과목(국·영·수·사·과 / 회화 3개국어), 내신·수능·자격증 목표를 기반으로 검증된 전담 강사님만을 성실히 엄선 매칭합니다.',
       icon: <UserCheck className="text-blue-900" size={24} />
     },
     {
       id: '03',
       title: '방문·화상수업 선택',
-      desc: '교과 및 내신 과외는 가정 방문 대면 집중형과 원격 화상 스마트형 중 자유롭게 선택할 수 있으며, 최적화 스피킹이 중점인 영어 회화는 편리한 화상 전용으로 이뤄집니다.',
+      desc: '교과 수업(국어/영어/수학/사회/과학)은 가정 방문 대면형과 원격 화상형 중 선택 가능하며, 회화 수업(영어/일본어/중국어)은 편리한 화상 전용으로 진행됩니다.',
       icon: <MapPin className="text-blue-900" size={24} />
     },
     {
@@ -35,17 +35,16 @@ export default function Benefits() {
         {/* Header Block */}
         <div className="max-w-3xl text-center mx-auto space-y-4">
           <span className="text-xs font-bold text-blue-900 uppercase tracking-widest block">
-            Why Our 1:1 English Class?
+            Why Only One Study?
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight keep-all break-keep">
-            영어 수업, 누구에게나<br className="block md:hidden" /> 같은 방식일 필요는 없습니다.
+            일대일 수업, 누구에게나<br className="block md:hidden" /> 같은 방식일 필요는 없습니다.
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-500 leading-relaxed keep-all break-keep">
-            영어를 배우는 목적은 모두 다릅니다.<br className="hidden sm:inline" /> 
-            학교 시험을 완벽하게 대비해야 하는<br className="block sm:hidden" /> 초중고 학생,<br className="hidden sm:inline" /> 
-            영어로 자연스럽고 품위 있게 소통하고 싶은<br className="block sm:hidden" /> 대학생 및 직장인,<br className="hidden sm:inline" /> 
-            영어를 태어나서 처음 흥미로 접하는<br className="block sm:hidden" /> 유아와 시니어까지,<br className="hidden sm:inline" /> 
-            수강생의 현재 눈높이와 향후 목표에 맞춰<br className="block sm:hidden" /> 완벽한 학습 솔루션을 제시합니다.
+            공부하는 목적과 취약한 과목은 학생마다 모두 다릅니다.<br className="hidden sm:inline" /> 
+            <strong>국어·영어·수학·사회·과학</strong> 학교 시험을 완벽하게 대비해야 하는 초중고 학생부터,<br className="hidden sm:inline" /> 
+            <strong>영어·일본어·중국어 회화</strong>를 자연스럽게 구사하고 싶은 성인 학습자까지,<br className="hidden sm:inline" /> 
+            수강생의 현재 눈높이와 목표에 맞춰 완벽한 과목별 1:1 맞춤 학습 솔루션을 제시합니다.
           </p>
         </div>
 
@@ -81,12 +80,12 @@ export default function Benefits() {
         <div className="p-6 md:p-8 bg-blue-950 text-white rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-1">
             <h4 className="text-sm font-bold keep-all break-keep">
-              오직 단 한 명만을 위해 설계되는<br className="block sm:hidden" /> 명품 영어 교육
+              오직 단 한 명만을 위해 설계되는 1:1 과목별 전문 맞춤 교육
             </h4>
             <p className="text-xs text-slate-400">학습 습관 점검, 전문 전담 피드백, 실시간 학부모 소통 피드백 리포트 기본 제공</p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-slate-300">
-            <span className="flex items-center gap-1"><Check size={14} className="text-blue-400" /> 맞춤 전담 강사진</span>
+            <span className="flex items-center gap-1"><Check size={14} className="text-blue-400" /> 과목별 전담 강사진</span>
             <span className="flex items-center gap-1"><Check size={14} className="text-blue-400" /> 주중/주말 자유 조정</span>
             <span className="flex items-center gap-1"><Check size={14} className="text-blue-400" /> 실시간 보강 유연성</span>
           </div>

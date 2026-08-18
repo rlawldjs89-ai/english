@@ -326,8 +326,8 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   };
 
   const coursesList = [
-    '유아 영어', '초등 영어', '중등 영어', '고등 영어', '영어 회화', '성인 영어', '시니어 영어', 
-    '토익', '토플', '토익스피킹', '오픽', '아이엘츠', '기타 시험 대비'
+    '국어', '영어', '수학', '사회', '과학', '영어회화', '일본어회화', '중국어회화',
+    '유아 영어', '초등 영어', '중등 영어', '고등 영어', '토익', '토플', '오픽'
   ];
 
   // Requirement #10: Firebase Authentication check for admin access

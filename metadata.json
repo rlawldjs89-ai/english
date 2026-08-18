@@ -1,6 +1,6 @@
 {
   "name": "Only One Study",
-  "description": "유아부터 시니어까지 개인별 학습 목적과 수준에 맞춘 고품격 영어 전문 일대일 방문 및 화상 수업 매칭 홈페이지",
+  "description": "국어, 영어, 수학, 사회, 과학 교과 과정부터 영어회화, 일본어회화, 중국어회화까지 학습자의 연령과 목표에 맞춘 1:1 방문 및 화상 전문 과외 매칭 플랫폼",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

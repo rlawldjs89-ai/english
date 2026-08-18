@@ -336,7 +336,7 @@ export default function App() {
             <div className="md:col-span-7 space-y-3">
               <h3 className="text-lg font-black text-white tracking-tight">Only One Study</h3>
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-                유아 파닉스부터 중고등 내신 지필, 성인 실무 영어 회화, 자격 시험 준비까지 완벽한 스케줄 매칭 및 최적화 영어 솔루션을 제시하는 전담 과외 매치센터입니다.
+                유아 기초 학습부터 초·중·고 국어·영어·수학·사회·과학 교과 내신 및 수능, 성인 영어·일본어·중국어 회화까지 완벽한 스케줄 매칭 및 1:1 맞춤 교육 솔루션을 제시하는 전담 과외 매치센터입니다.
               </p>
             </div>
 

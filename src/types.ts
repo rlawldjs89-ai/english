@@ -83,7 +83,7 @@ export interface Review {
   id: string;
   author: string;
   role: string; // '학부모' | '중학생' | '고등학생' | '성인' | '시니어'
-  category: '유아·초등' | '중학생 내신' | '고등학생 수능·내신' | '성인 회화' | '시험 대비' | '시니어 영어';
+  category: string;
   text: string;
   rating: number;
   date: string;

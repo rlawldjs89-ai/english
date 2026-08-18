@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, ArrowRight, MapPin, Video, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { Calendar, ArrowRight, MapPin, Video, Send, CheckCircle, Loader2, Check } from 'lucide-react';
 import { getBookings, addBookingOnServer } from '../lib/storage';
 import { addConsultationToFirestore } from '../lib/firebase';
 import { Booking, User } from '../types';
@@ -24,22 +24,44 @@ export default function MainVisual({
   const [studentName, setStudentName] = useState('');
   const [region, setRegion] = useState('');
   const [grade, setGrade] = useState('초등 저학년');
-  const [preferredCamp, setPreferredCamp] = useState('초등 기본영어');
+  const [selectedPrograms, setSelectedPrograms] = useState<string[]>(['국어']);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const PROGRAM_OPTIONS = [
+    '국어',
+    '영어',
+    '수학',
+    '사회',
+    '과학',
+    '영어회화',
+    '일본어회화',
+    '중국어회화'
+  ];
+
+  const toggleProgram = (prog: string) => {
+    setSelectedPrograms((prev) => {
+      if (prev.includes(prog)) {
+        if (prev.length === 1) {
+          // Keep at least one or allow empty
+          return [];
+        }
+        return prev.filter((p) => p !== prog);
+      } else {
+        return [...prev, prog];
+      }
+    });
+  };
 
   // Change default grade/program based on category
   React.useEffect(() => {
     if (category === 'student') {
       setGrade('초등 저학년');
-      setPreferredCamp('초등 기본영어');
     } else if (category === 'adult') {
       setGrade('30대 직장인');
-      setPreferredCamp('일대일 기초 회화');
     } else if (category === 'camp') {
       setGrade('초등 5~6학년');
-      setPreferredCamp('캐나다 겨울 스쿨링 캠프');
     }
   }, [category]);
 
@@ -90,10 +112,16 @@ export default function MainVisual({
       }
     }
 
+    if (selectedPrograms.length === 0) {
+      setErrorMsg('희망 프로그램을 최소 1개 이상 선택해 주세요.');
+      return;
+    }
+
     const finalStudentName = category === 'adult' ? applicantName.trim() : studentName.trim();
     const finalName = category === 'adult' ? applicantName.trim() : (studentName.trim() || applicantName.trim());
     const finalRegion = region.trim() || currentUser?.region || '미지정';
-    const finalReason = `[빠른 상담 신청] 분류: ${category === 'student' ? '학생용' : category === 'adult' ? '성인용' : '캠프용'} | 거주지역: ${finalRegion} | 희망 프로그램: ${preferredCamp} | 학년/연령대: ${grade} | 수강생: ${finalStudentName}`;
+    const chosenProgramsStr = selectedPrograms.join(', ');
+    const finalReason = `[빠른 상담 신청] 분류: ${category === 'student' ? '학생용' : category === 'adult' ? '성인용' : '캠프용'} | 거주지역: ${finalRegion} | 희망 프로그램: ${chosenProgramsStr} | 학년/연령대: ${grade} | 수강생: ${finalStudentName}`;
 
     setIsSubmitting(true);
 
@@ -103,7 +131,7 @@ export default function MainVisual({
         name: finalName,
         contact: contact.trim(),
         grade: grade,
-        subject: preferredCamp,
+        subject: chosenProgramsStr,
         classType: finalRegion !== '미지정' ? `방문·화상 (${finalRegion})` : '방문·화상 모두 상담 희망',
         preferredDate: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
         preferredTimeSlot: '평일 오후',
@@ -123,7 +151,7 @@ export default function MainVisual({
         gradeOrJob: grade,
         region: finalRegion,
         currentLevel: '중급 (의사소통/학교내신)',
-        selectedCourse: preferredCamp,
+        selectedCourse: chosenProgramsStr,
         classType: '방문·화상 모두 상담 희망',
         preferredDate: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
         preferredTimeSlot: '평일 오후',
@@ -186,21 +214,21 @@ export default function MainVisual({
           </div>
 
           <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.3] sm:leading-[1.15] keep-all break-keep">
-            영어가 필요한 모든 순간,<br />
+            일대일 수업이 필요한 모든 순간,<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-sky-200 to-orange-300">
-              나에게 맞는 일대일 수업
+              나에게 맞는 전문 선생님
             </span>을<br />
             만나보세요.
           </h1>
 
           <p className="text-slate-300 text-xs sm:text-sm md:text-base max-w-xl leading-relaxed mx-auto lg:mx-0 keep-all break-keep">
-            유아 영어부터 초·중·고 교과과정,<br className="block sm:hidden" /> 성인 회화, 토익·토플·오픽까지<br className="hidden sm:inline" />
-            학습자의 연령과 목표에 맞는<br className="block sm:hidden" /> 완벽한 영어 전문 선생님을<br className="block sm:hidden" /> 엄선하여 일대일 연결해 드립니다.
+            유아부터 초 중 고 교과 과정, 성인 회화, 토익 토플 오픽까지<br className="hidden sm:inline" />
+            학습자의 연령과 목표에 맞는 완벽한 전문 선생님을 만나보세요.
           </p>
 
           <div className="text-[11px] sm:text-xs text-slate-400 font-medium text-center lg:text-left keep-all break-keep">
-            ※ 교과수업은 방문·화상 선택 가능<br />
-            영어 회화수업은 화상전용으로 진행됩니다.
+            * 교과 수업은 방문 화상 선택 가능<br />
+            회화 수업은 화상수업으로 진행됩니다.
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2 w-full sm:w-auto justify-center lg:justify-start">
@@ -238,7 +266,7 @@ export default function MainVisual({
             </div>
             <div>
               <span className="block text-white font-extrabold text-sm md:text-base">Expert</span>
-              검증된 영어 전문 강사
+              검증된 과목별 전문 강사
             </div>
           </div>
         </div>
@@ -395,7 +423,7 @@ export default function MainVisual({
               </div>
 
               {/* Grade & Preferred Program */}
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="space-y-2.5">
                 <div className="space-y-1">
                   <label className="block text-xs font-bold text-slate-700">
                     {category === 'student' ? '학년구분' : category === 'adult' ? '연령대' : '학년'} <span className="text-rose-500">*</span>
@@ -403,7 +431,7 @@ export default function MainVisual({
                   <select
                     value={grade}
                     onChange={(e) => setGrade(e.target.value)}
-                    className="w-full px-2 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 bg-slate-50/50 text-slate-700 font-bold transition-colors"
+                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 bg-slate-50/50 text-slate-700 font-bold transition-colors"
                   >
                     {category === 'student' && (
                       <>
@@ -434,42 +462,36 @@ export default function MainVisual({
                   </select>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-700">
-                    희망 프로그램 <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={preferredCamp}
-                    onChange={(e) => setPreferredCamp(e.target.value)}
-                    className="w-full px-2 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 bg-slate-50/50 text-slate-700 font-bold transition-colors"
-                  >
-                    {category === 'student' && (
-                      <>
-                        <option value="초등 기본영어">초등 기본영어</option>
-                        <option value="중등 내신대비">중등 내신대비</option>
-                        <option value="고등 수능/내신">고등 수능/내신</option>
-                        <option value="일대일 영어회화">일대일 영어회화</option>
-                        <option value="영어 파닉스">영어 파닉스</option>
-                      </>
-                    )}
-                    {category === 'adult' && (
-                      <>
-                        <option value="일대일 기초 회화">일대일 기초 회화</option>
-                        <option value="비즈니스 영어">비즈니스 영어</option>
-                        <option value="영어 프리토킹">영어 프리토킹</option>
-                        <option value="오픽/토스 대비">오픽/토스 대비</option>
-                        <option value="토익/인증시험 대비">토익/인증시험 대비</option>
-                      </>
-                    )}
-                    {category === 'camp' && (
-                      <>
-                        <option value="캐나다 겨울 스쿨링 캠프">🇨🇦 캐나다 겨울캠프</option>
-                        <option value="뉴질랜드 겨울 스쿨링 캠프">🇳🇿 뉴질랜드 겨울캠프</option>
-                        <option value="캐나다/뉴질랜드 비교상담">🌎 둘 다 비교상담</option>
-                        <option value="정규 조기유학 컨설팅">🎓 조기유학 컨설팅</option>
-                      </>
-                    )}
-                  </select>
+                {/* Preferred Programs (Multi-select) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-700">
+                      희망 프로그램 <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-orange-600 font-semibold bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100">
+                      복수 선택 가능 ({selectedPrograms.length}개 선택됨)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {PROGRAM_OPTIONS.map((prog) => {
+                      const isSelected = selectedPrograms.includes(prog);
+                      return (
+                        <button
+                          key={prog}
+                          type="button"
+                          onClick={() => toggleProgram(prog)}
+                          className={`py-2 px-1 text-[11px] font-bold rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                            isSelected
+                              ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                              : 'bg-slate-50/70 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                          }`}
+                        >
+                          {isSelected && <Check size={11} className="stroke-[3] text-orange-400 shrink-0" />}
+                          <span className="truncate">{prog}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
