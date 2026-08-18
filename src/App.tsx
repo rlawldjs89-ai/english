@@ -346,7 +346,6 @@ export default function App() {
 
             <div className="md:col-span-5 space-y-2.5 text-xs text-slate-400">
               <h4 className="font-bold text-slate-200">고객 지원 및 해피콜 운영</h4>
-              <p>학습 지원 팀장 : <span className="text-slate-300 font-medium">김지언</span></p>
               <p>교육 상담 문의 : <strong className="text-white text-sm">010-8374-6543</strong></p>
             </div>
           </div>
@@ -429,13 +428,13 @@ export default function App() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* 8. Dynamic Floating Badges: Quick Consult + Friendly Phone Consult */}
+      {/* 8. Dynamic Floating Badges: Quick Consult + Friendly SMS & Phone Consult */}
       <div className="fixed right-4 bottom-5 md:right-8 md:bottom-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
         {/* Top Floating Badge: Quick Free Consultation */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.7 }}
           className="flex flex-col items-end gap-1.5 group cursor-pointer"
           onClick={handleNavigateToBooking}
         >
@@ -446,23 +445,22 @@ export default function App() {
           </div>
 
           {/* Circular Floating Icon with Ring */}
-          <div className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
+          <div className="relative w-13 h-13 md:w-15 md:h-15 bg-gradient-to-tr from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
             <div className="absolute inset-0 rounded-full bg-orange-500 animate-ping opacity-20 group-hover:opacity-30" />
             <span className="text-[10px] md:text-[11px] font-black tracking-widest text-white uppercase drop-shadow">CLICK</span>
-            <span className="text-sm md:text-base animate-pulse mt-0.5 filter drop-shadow">✨</span>
+            <span className="text-xs md:text-sm animate-pulse filter drop-shadow">✨</span>
           </div>
         </motion.div>
 
-        {/* Bottom Floating Badge: Friendly Phone Consultation Badge */}
+        {/* 1. Friendly Phone (통화하기) Consultation Badge */}
         <motion.a 
           href="tel:010-8374-6543"
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 1 }}
+          transition={{ delay: 0.8 }}
           className="flex flex-col items-end gap-1.5 group cursor-pointer no-underline"
           title="친절한 전화상담 바로 연결 (010-8374-6543)"
           onClick={(e) => {
-            // Friendly popup fallback if clicked on desktop without telephony support
             if (!navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/i)) {
               e.preventDefault();
               alert('📞 친절한 1:1 전화상담 안내\n\n직통 전화번호: 010-8374-6543\n\n모바일 기기에서는 바로 전화 연결이 실행됩니다!');
@@ -470,16 +468,45 @@ export default function App() {
           }}
         >
           {/* Green Highlight Text Bubble */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold text-[11px] md:text-xs py-1.5 px-3.5 rounded-full shadow-xl border border-emerald-400/50 flex items-center gap-1.5 group-hover:scale-105 transition-transform">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold text-[10px] md:text-xs py-1 px-3 md:py-1.5 md:px-3.5 rounded-full shadow-xl border border-emerald-400/50 flex items-center gap-1 group-hover:scale-105 transition-transform whitespace-nowrap">
             <span className="text-xs animate-pulse">📞</span>
-            친절한 전화상담 (바로연결)
+            친절한 상담 (통화하기)
           </div>
 
           {/* Circular Floating Phone Icon */}
-          <div className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
+          <div className="relative w-13 h-13 md:w-15 md:h-15 bg-gradient-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
             <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-20 group-hover:opacity-30" />
-            <Phone size={22} className="text-white drop-shadow animate-pulse" />
+            <Phone size={20} className="text-white drop-shadow animate-pulse" />
             <span className="text-[9px] md:text-[10px] font-black text-emerald-100 mt-0.5 tracking-tighter">통화하기</span>
+          </div>
+        </motion.a>
+
+        {/* 2. Friendly SMS (문자하기) Consultation Badge (통화하기 아래 배치) */}
+        <motion.a 
+          href="sms:010-8374-6543"
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+          className="flex flex-col items-end gap-1.5 group cursor-pointer no-underline"
+          title="친절한 문자상담 바로 연결 (010-8374-6543)"
+          onClick={(e) => {
+            if (!navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/i)) {
+              e.preventDefault();
+              alert('💬 친절한 1:1 문자상담 안내\n\n직통 문자번호: 010-8374-6543\n\n모바일 기기에서는 바로 문자 앱(SMS)이 실행됩니다!');
+            }
+          }}
+        >
+          {/* Blue Highlight Text Bubble */}
+          <div className="bg-gradient-to-r from-sky-600 to-blue-600 text-white font-extrabold text-[10px] md:text-xs py-1 px-3 md:py-1.5 md:px-3.5 rounded-full shadow-xl border border-sky-400/50 flex items-center gap-1 group-hover:scale-105 transition-transform whitespace-nowrap">
+            <span className="text-xs">💬</span>
+            친절한 상담 (문자하기)
+          </div>
+
+          {/* Circular Floating SMS Icon */}
+          <div className="relative w-13 h-13 md:w-15 md:h-15 bg-gradient-to-tr from-sky-600 to-blue-500 hover:from-sky-500 hover:to-blue-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
+            <div className="absolute inset-0 rounded-full bg-sky-500 animate-ping opacity-20 group-hover:opacity-30" />
+            <MessageSquare size={20} className="text-white drop-shadow" />
+            <span className="text-[9px] md:text-[10px] font-black text-sky-100 mt-0.5 tracking-tighter">문자하기</span>
           </div>
         </motion.a>
       </div>
