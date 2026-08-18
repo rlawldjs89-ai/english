@@ -231,6 +231,15 @@ export function saveBookings(bookings: Booking[]): void {
 export async function addBookingOnServer(booking: Booking): Promise<Booking[]> {
   // Sync to Firestore immediately
   saveBookingToFirestore(booking).catch(console.error);
+
+  // Background trigger Telegram alert if configured
+  fetch('/api/notify-telegram/booking', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ booking }),
+  }).catch(() => {});
   
   // Save locally first
   const current = getBookings();

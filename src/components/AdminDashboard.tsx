@@ -7,7 +7,7 @@ import { mockTeachers } from '../data/teachers';
 import { 
   Users, CheckCircle2, Clock, Eye, Edit3, Trash2, Search, Filter, 
   Download, Calendar, Plus, RefreshCw, Bookmark, Award, HelpCircle, FileSpreadsheet, MapPin,
-  Shield, AlertCircle, Loader2
+  Shield, AlertCircle, Loader2, Bell, Send, Key, Smartphone, ExternalLink, X
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -26,8 +26,101 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [lastSyncedTime, setLastSyncedTime] = useState<string>('');
 
+  // Telegram real-time alert state
+  const [isTelegramModalOpen, setIsTelegramModalOpen] = useState<boolean>(false);
+  const [telegramConfig, setTelegramConfig] = useState<{
+    hasToken: boolean;
+    botTokenMasked: string;
+    chatId: string;
+    notifyPhone: string;
+    isEnabled: boolean;
+  }>({
+    hasToken: false,
+    botTokenMasked: '',
+    chatId: '',
+    notifyPhone: '010-8374-6543',
+    isEnabled: true,
+  });
+  const [inputBotToken, setInputBotToken] = useState<string>('');
+  const [inputChatId, setInputChatId] = useState<string>('');
+  const [isTestingTelegram, setIsTestingTelegram] = useState<boolean>(false);
+  const [telegramTestResult, setTelegramTestResult] = useState<{ success?: boolean; message?: string } | null>(null);
+  const [isSavingTelegram, setIsSavingTelegram] = useState<boolean>(false);
+
   const localUser = getCurrentUser();
   const isLocalAdmin = Boolean(localUser && (localUser.role === 'admin' || isAdminEmail(localUser.email)));
+
+  const loadTelegramConfig = async () => {
+    try {
+      const res = await fetch('/api/telegram-config');
+      if (res.ok) {
+        const data = await res.json();
+        setTelegramConfig(data);
+        if (data.chatId) {
+          setInputChatId(data.chatId);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load telegram config:', e);
+    }
+  };
+
+  useEffect(() => {
+    loadTelegramConfig();
+  }, []);
+
+  const handleTestTelegram = async () => {
+    setIsTestingTelegram(true);
+    setTelegramTestResult(null);
+    try {
+      const res = await fetch('/api/notify-telegram/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testChatId: inputChatId || telegramConfig.chatId,
+          testBotToken: inputBotToken || undefined,
+        }),
+      });
+      const data = await res.json();
+      setTelegramTestResult(data);
+      if (data.success) {
+        loadTelegramConfig();
+      }
+    } catch (e: any) {
+      setTelegramTestResult({ success: false, message: e.message || '네트워크 통신 오류가 발생했습니다.' });
+    } finally {
+      setIsTestingTelegram(false);
+    }
+  };
+
+  const handleSaveTelegramConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingTelegram(true);
+    try {
+      const res = await fetch('/api/telegram-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          botToken: inputBotToken,
+          chatId: inputChatId,
+          notifyPhone: '010-8374-6543',
+          isEnabled: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('✅ 텔레그램 알림 설정이 안전하게 저장되었습니다!');
+        loadTelegramConfig();
+        setInputBotToken('');
+      } else {
+        alert(`저장 실패: ${data.error || '오류가 발생했습니다.'}`);
+      }
+    } catch (e: any) {
+      alert(`저장 중 오류: ${e.message}`);
+    } finally {
+      setIsSavingTelegram(false);
+    }
+  };
 
   // Firebase Auth listener
   useEffect(() => {
@@ -419,19 +512,67 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
           </p>
         </div>
         
-        <div className="flex gap-2.5">
+        <div className="flex flex-wrap gap-2.5">
+          <button
+            onClick={() => setIsTelegramModalOpen(true)}
+            className={`px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold shadow-md cursor-pointer ${
+              telegramConfig.hasToken && telegramConfig.chatId
+                ? 'bg-sky-500/20 text-sky-200 border border-sky-400/40 hover:bg-sky-500/30'
+                : 'bg-gradient-to-r from-sky-600 to-blue-600 text-white hover:from-sky-500 hover:to-blue-500'
+            }`}
+          >
+            <Bell size={14} className="animate-pulse text-sky-300" />
+            <span>텔레그램 알림 {telegramConfig.hasToken && telegramConfig.chatId ? '(연동됨)' : '(설정)'}</span>
+          </button>
+
           <button
             onClick={loadData}
-            className="p-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold"
+            className="p-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer"
           >
             <RefreshCw size={14} /> 새로고침
           </button>
           
           <button
             onClick={downloadCSV}
-            className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold shadow-md shadow-orange-500/10"
+            className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold shadow-md shadow-orange-500/10 cursor-pointer"
           >
             <FileSpreadsheet size={15} /> 엑셀 다운로드 (CSV)
+          </button>
+        </div>
+      </div>
+
+      {/* Telegram Notification Alert Card */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-sky-500/30 p-4 sm:p-5 rounded-2xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-400 flex items-center justify-center shrink-0">
+            <Smartphone size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-100">
+                📱 010-8374-6543 텔레그램 실시간 상담 알림
+              </h3>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                telegramConfig.hasToken && telegramConfig.chatId
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+              }`}>
+                {telegramConfig.hasToken && telegramConfig.chatId ? '● 실시간 전송 대기 중' : '○ 연동 설정 필요'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              학부모 및 학생이 무료 상담 또는 과외 신청서를 제출하면 0.1초 만에 관리자 텔레그램으로 신청 내역이 자동 전송됩니다.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setIsTelegramModalOpen(true)}
+            className="w-full sm:w-auto px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/20 cursor-pointer"
+          >
+            <Bell size={14} />
+            {telegramConfig.hasToken && telegramConfig.chatId ? '알림 설정 및 테스트' : '텔레그램 1분 연동하기'}
           </button>
         </div>
       </div>
@@ -909,6 +1050,161 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Telegram Configuration & Instant Test Modal */}
+      {isTelegramModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white p-6 flex justify-between items-start">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-sky-500/20 text-sky-400 rounded-lg border border-sky-400/30">
+                    <Smartphone size={16} />
+                  </span>
+                  <span className="text-xs font-bold text-sky-300">010-8374-6543 전용 알림 연동</span>
+                </div>
+                <h3 className="text-lg font-bold">📢 텔레그램 실시간 상담 알림 설정</h3>
+                <p className="text-xs text-slate-300">
+                  신규 무료 상담 신청이 접수되는 즉시 스마트폰 텔레그램으로 알림을 전송합니다.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsTelegramModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6 text-slate-700">
+              {/* Status Alert Banner */}
+              <div className={`p-4 rounded-2xl border text-xs leading-relaxed flex items-start gap-3 ${
+                telegramConfig.hasToken && telegramConfig.chatId
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  : 'bg-amber-50 border-amber-200 text-amber-900'
+              }`}>
+                <Bell size={18} className={`shrink-0 mt-0.5 ${telegramConfig.hasToken && telegramConfig.chatId ? 'text-emerald-600' : 'text-amber-600'}`} />
+                <div>
+                  <p className="font-bold">
+                    현재 상태: {telegramConfig.hasToken && telegramConfig.chatId ? '🟢 실시간 전송 준비 완료' : '🟡 봇 토큰 및 Chat ID 등록 필요'}
+                  </p>
+                  <p className="text-[11px] mt-0.5 opacity-90">
+                    {telegramConfig.hasToken && telegramConfig.chatId
+                      ? `관리자 번호 010-8374-6543과 연결된 Chat ID (${telegramConfig.chatId})로 실시간 알림이 발송됩니다.`
+                      : '아래 가이드에 따라 봇 토큰과 Chat ID를 입력하시면 1분 안에 즉시 연동됩니다.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Step-by-Step Guide */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5 text-xs text-slate-600">
+                <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                  <span>💡</span> 텔레그램 알림 1분 설정 방법 (무료)
+                </p>
+                <ol className="list-decimal pl-4 space-y-1.5 text-[11px] leading-relaxed">
+                  <li>
+                    텔레그램 앱 검색창에 <strong>@BotFather</strong> 검색 후 대화창에서 <code className="bg-white px-1 py-0.5 rounded font-mono font-bold text-slate-800 border">/newbot</code> 전송
+                  </li>
+                  <li>
+                    봇 이름과 아이디를 정하면 발급되는 <strong>HTTP API Token</strong>을 복사하여 아래 [Bot Token]에 입력
+                  </li>
+                  <li>
+                    생성된 내 봇의 링크를 누르고 들어가 <strong>시작 (/start)</strong> 버튼 클릭
+                  </li>
+                  <li>
+                    텔레그램 검색창에 <strong>@userinfobot</strong> 검색 후 시작하여 나오는 내 고유 <strong>Id(숫자)</strong>를 아래 [Chat ID]에 입력 후 저장!
+                  </li>
+                </ol>
+              </div>
+
+              {/* Configuration Form */}
+              <form onSubmit={handleSaveTelegramConfig} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">
+                    텔레그램 봇 토큰 (Bot Token)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={inputBotToken}
+                      onChange={(e) => setInputBotToken(e.target.value)}
+                      placeholder={telegramConfig.hasToken ? `현재 등록됨 (${telegramConfig.botTokenMasked}) - 변경 시에만 입력` : '예: 7123456789:AAFx98yZ...'}
+                      className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-600 focus:outline-hidden font-mono"
+                    />
+                    <Key size={15} className="absolute left-3 top-3 text-slate-400" />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    * @BotFather가 발급해 준 API 토큰입니다.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">
+                    수신자 Chat ID (내 텔레그램 ID)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={inputChatId}
+                      onChange={(e) => setInputChatId(e.target.value)}
+                      placeholder="예: 123456789"
+                      className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-600 focus:outline-hidden font-mono"
+                    />
+                    <Smartphone size={15} className="absolute left-3 top-3 text-slate-400" />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    * @userinfobot 에서 확인 가능한 본인 고유 숫자 ID입니다. (010-8374-6543과 연결된 계정)
+                  </p>
+                </div>
+
+                {/* Test Result Message */}
+                {telegramTestResult && (
+                  <div className={`p-3 rounded-xl border text-xs font-semibold animate-in fade-in duration-200 ${
+                    telegramTestResult.success
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-rose-50 border-rose-200 text-rose-800'
+                  }`}>
+                    {telegramTestResult.success ? '✅ ' : '❌ '}
+                    {telegramTestResult.message}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={handleTestTelegram}
+                    disabled={isTestingTelegram}
+                    className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {isTestingTelegram ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        테스트 알림 전송 중...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={14} />
+                        🧪 테스트 알림 즉시 발송
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isSavingTelegram}
+                    className="flex-1 py-3 px-4 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/20 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingTelegram ? '저장 중...' : '설정 정보 저장'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

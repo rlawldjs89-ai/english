@@ -6,6 +6,100 @@ import { createServer as createViteServer } from "vite";
 const app = express();
 const PORT = 3000;
 const DATA_FILE = path.join(process.cwd(), 'bookings.json');
+const TELEGRAM_CONFIG_FILE = path.join(process.cwd(), 'telegram-config.json');
+
+// Helper to get Telegram Bot configuration
+function getTelegramConfig() {
+  let config = {
+    botToken: process.env.TELEGRAM_BOT_TOKEN || '',
+    chatId: process.env.TELEGRAM_CHAT_ID || '',
+    notifyPhone: '010-8374-6543',
+    isEnabled: true,
+  };
+  if (fs.existsSync(TELEGRAM_CONFIG_FILE)) {
+    try {
+      const fileData = JSON.parse(fs.readFileSync(TELEGRAM_CONFIG_FILE, 'utf8'));
+      config = { ...config, ...fileData };
+    } catch (e) {
+      console.error('Error reading telegram-config.json:', e);
+    }
+  }
+  return config;
+}
+
+function saveTelegramConfig(config: { botToken?: string; chatId?: string; notifyPhone?: string; isEnabled?: boolean }) {
+  try {
+    const current = getTelegramConfig();
+    const merged = { ...current, ...config };
+    fs.writeFileSync(TELEGRAM_CONFIG_FILE, JSON.stringify(merged, null, 2), 'utf8');
+    return merged;
+  } catch (e) {
+    console.error('Failed to save telegram config:', e);
+    return null;
+  }
+}
+
+// Format booking details into Telegram message
+function formatBookingTelegramMessage(booking: any) {
+  const dateStr = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+  return `🔔 <b>[Only One Study] 신규 무료 상담 신청 접수!</b>
+
+👤 <b>신청자:</b> ${booking.applicantName || '미기재'} (${booking.relationship || '본인'})
+📞 <b>연락처:</b> ${booking.contact || '미기재'}
+🎓 <b>수강생/학년:</b> ${booking.studentName || '미기재'} (${booking.gradeOrJob || (booking.studentAge ? `${booking.studentAge}세` : '미기재')})
+📚 <b>신청 과목:</b> <b>${booking.selectedCourse || '미기재'}</b>
+📍 <b>거주 지역:</b> ${booking.region || '미기재'}
+🚗 <b>희망 방식:</b> ${booking.classType || '미기재'}
+🗓️ <b>희망 일정:</b> ${booking.preferredDate || '빠른 상담'} ${booking.preferredTimeSlot ? `(${booking.preferredTimeSlot})` : ''}
+💡 <b>신청 사유:</b> ${booking.reason || '상담 요청'}
+🎯 <b>학습 목표:</b> ${booking.goals || '기초 향상 및 성적 향상'}
+👩‍🏫 <b>선생님 선호:</b> ${booking.preferredTeacherGender || '무관'}
+⏰ <b>접수 시간:</b> ${dateStr}
+
+👉 <i>관리자 대시보드에서 신청서 확인 및 담당 강사를 배정해 주세요.</i>`;
+}
+
+// Function to send message via Telegram Bot API
+async function sendTelegramNotification(text: string): Promise<{ success: boolean; message?: string }> {
+  const config = getTelegramConfig();
+  const token = config.botToken || process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = config.chatId || process.env.TELEGRAM_CHAT_ID;
+
+  if (!token || !chatId) {
+    console.log('Telegram notification skipped: botToken or chatId not configured yet.');
+    return { success: false, message: '텔레그램 봇 토큰(Bot Token) 또는 Chat ID가 설정되지 않았습니다.' };
+  }
+
+  if (config.isEnabled === false) {
+    return { success: false, message: '텔레그램 알림이 비활성화 상태입니다.' };
+  }
+
+  try {
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      }),
+    });
+
+    const resJson: any = await response.json();
+    if (resJson.ok) {
+      console.log('Telegram notification sent successfully to chat:', chatId);
+      return { success: true };
+    } else {
+      console.error('Telegram API error:', resJson);
+      return { success: false, message: resJson.description || '텔레그램 발송 실패' };
+    }
+  } catch (err: any) {
+    console.error('Telegram send error:', err);
+    return { success: false, message: err.message || '네트워크 오류' };
+  }
+}
 
 // Ensure data file exists or seed it
 const seedBookings = [
@@ -189,12 +283,109 @@ async function startServer() {
       if (!current.some((b: any) => b.id === booking.id)) {
         const updated = [booking, ...current];
         saveBookings(updated);
+
+        // Auto Send Telegram Notification for new booking
+        sendTelegramNotification(formatBookingTelegramMessage(booking)).catch((err) => {
+          console.error("Failed to send telegram notification:", err);
+        });
+
         res.json(updated);
       } else {
         res.json(current);
       }
     } else {
       res.status(400).json({ error: "Invalid booking data" });
+    }
+  });
+
+  // API Route: POST /api/notify-telegram/booking (Explicit notification trigger)
+  app.post("/api/notify-telegram/booking", async (req, res) => {
+    const { booking } = req.body;
+    if (!booking) {
+      return res.status(400).json({ error: "Booking data required" });
+    }
+    const result = await sendTelegramNotification(formatBookingTelegramMessage(booking));
+    res.json(result);
+  });
+
+  // API Route: GET /api/telegram-config
+  app.get("/api/telegram-config", (req, res) => {
+    const config = getTelegramConfig();
+    const maskedToken = config.botToken
+      ? `${config.botToken.slice(0, 6)}...${config.botToken.slice(-4)}`
+      : '';
+    res.json({
+      hasToken: Boolean(config.botToken),
+      botTokenMasked: maskedToken,
+      chatId: config.chatId,
+      notifyPhone: config.notifyPhone || '010-8374-6543',
+      isEnabled: config.isEnabled !== false,
+    });
+  });
+
+  // API Route: POST /api/telegram-config
+  app.post("/api/telegram-config", (req, res) => {
+    const { botToken, chatId, notifyPhone, isEnabled } = req.body;
+    const current = getTelegramConfig();
+    const updated = saveTelegramConfig({
+      botToken: botToken !== undefined && botToken !== '' ? botToken : current.botToken,
+      chatId: chatId !== undefined ? chatId : current.chatId,
+      notifyPhone: notifyPhone || current.notifyPhone || '010-8374-6543',
+      isEnabled: isEnabled !== undefined ? isEnabled : current.isEnabled,
+    });
+    if (updated) {
+      res.json({ success: true, config: {
+        hasToken: Boolean(updated.botToken),
+        chatId: updated.chatId,
+        notifyPhone: updated.notifyPhone,
+        isEnabled: updated.isEnabled,
+      }});
+    } else {
+      res.status(500).json({ error: "Failed to save configuration" });
+    }
+  });
+
+  // API Route: POST /api/notify-telegram/test
+  app.post("/api/notify-telegram/test", async (req, res) => {
+    const { testChatId, testBotToken } = req.body || {};
+    const config = getTelegramConfig();
+    const token = testBotToken || config.botToken || process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = testChatId || config.chatId || process.env.TELEGRAM_CHAT_ID;
+
+    if (!token || !chatId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '텔레그램 Bot Token과 Chat ID가 필요합니다. 설정창에서 입력 후 테스트해 주세요.' 
+      });
+    }
+
+    const testMessage = `🧪 <b>[Only One Study] 텔레그램 실시간 알림 연동 테스트 성공!</b>
+
+📱 <b>수신 관리자:</b> 010-8374-6543
+⏰ <b>테스트 일시:</b> ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+
+✅ 텔레그램 봇과 채팅방이 성공적으로 연결되었습니다!
+앞으로 학부모 및 학생의 <b>신규 무료 상담/과외 신청</b>이 접수되면 이 텔레그램 채팅방으로 0.1초 만에 알림이 발송됩니다.`;
+
+    try {
+      const url = `https://api.telegram.org/bot${token}/sendMessage`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: testMessage,
+          parse_mode: 'HTML',
+        }),
+      });
+      const resJson: any = await response.json();
+      if (resJson.ok) {
+        res.json({ success: true, message: '텔레그램으로 테스트 메시지가 성공적으로 발송되었습니다!' });
+      } else {
+        res.status(400).json({ success: false, message: resJson.description || '텔레그램 발송 실패' });
+      }
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message || '네트워크 통신 오류' });
     }
   });
 
