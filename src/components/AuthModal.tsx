@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, UserRole, isAdminEmail } from '../types';
 import { getUsers, saveUsers, setCurrentUser } from '../lib/storage';
 import { loginWithGoogle, loginWithEmailOrAdmin } from '../lib/firebase';
-import { X, Mail, Lock, User as UserIcon, Phone, Shield } from 'lucide-react';
+import { X, Mail, Lock, User as UserIcon, Phone } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -149,7 +149,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
             <X size={20} />
           </button>
           <h3 className="text-xl font-bold">
-            {isLogin ? '영어 일대일 전문 수업 로그인' : '무료 회원가입'}
+            {isLogin ? '일대일 전문 맞춤 수업 로그인' : '무료 회원가입'}
           </h3>
           <p className="text-xs text-slate-400 mt-1">
             {isLogin ? '가입하신 이메일이나 Google 계정으로 로그인해 보세요.' : '맞춤 수업과 상담 일정을 안전하게 관리해 드립니다.'}
@@ -297,15 +297,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
               </button>
             </div>
           </form>
-        </div>
-
-        {/* Demo Account info */}
-        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-start gap-2">
-          <Shield size={15} className="text-slate-400 shrink-0 mt-0.5" />
-          <div className="text-[11px] text-slate-500 leading-normal">
-            <p className="font-semibold text-slate-700">관리자 테스트 계정 정보</p>
-            <p>이메일: <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-700 font-semibold">admin@english.com</code> / 비밀번호: <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-700 font-semibold">1234</code></p>
-          </div>
         </div>
       </div>
     </div>

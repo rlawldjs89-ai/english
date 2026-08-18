@@ -14,6 +14,7 @@ import Benefits from './components/Benefits';
 import Courses from './components/Courses';
 import ConversationCourse from './components/ConversationCourse';
 import ExamPreparation from './components/ExamPreparation';
+import CampStudyAbroad from './components/CampStudyAbroad';
 import CourseTypeComparison from './components/CourseTypeComparison';
 import TeacherMatching from './components/TeacherMatching';
 import TrialInfo from './components/TrialInfo';
@@ -251,10 +252,13 @@ export default function App() {
             {/* SECTION 4. 영어 회화수업 */}
             <ConversationCourse onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 5. 영어 인증시험 대비 */}
+            {/* SECTION 5. 교과 내신 및 인증시험 대비 */}
             <ExamPreparation onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 6. 방문수업과 화상수업 비교 */}
+            {/* SECTION 6. 해외 스쿨링 캠프 및 조기유학 컨설팅 */}
+            <CampStudyAbroad onNavigateToBooking={handleNavigateToBooking} />
+
+            {/* SECTION 7. 방문수업과 화상수업 비교 */}
             <CourseTypeComparison />
 
             {/* SECTION 7. 선생님 배정 과정 */}

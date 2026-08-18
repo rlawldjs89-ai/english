@@ -28,6 +28,7 @@ export default function Header({
     { label: '교과·회화 과정', sectionId: 'courses-section' },
     { label: '회화 화상과정', sectionId: 'conversation-section' },
     { label: '내신·수능/어학대비', sectionId: 'exams-section' },
+    { label: '✈️ 해외캠프·유학', sectionId: 'camp-section', isHighlight: true },
     { label: '수업 방식', sectionId: 'comparison-section' },
     { label: '선생님 배정', sectionId: 'matching-section' },
     { label: '수업 후기', sectionId: 'reviews-section' }
@@ -59,15 +60,21 @@ export default function Header({
         </button>
 
         {/* Desktop Menu navigation */}
-        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-bold text-slate-600">
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs font-bold text-slate-600">
           {menuItems.map((item, idx) => (
             <button
               key={idx}
               onClick={() => handleMenuItemClick(item.sectionId)}
-              className="hover:text-blue-900 cursor-pointer transition-colors py-2 relative group"
+              className={`cursor-pointer transition-all py-1.5 relative group ${
+                item.isHighlight 
+                  ? 'px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-xs hover:shadow-md hover:scale-105 font-black' 
+                  : 'hover:text-blue-900'
+              }`}
             >
               {item.label}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-900 transition-all group-hover:w-full" />
+              {!item.isHighlight && (
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-900 transition-all group-hover:w-full" />
+              )}
             </button>
           ))}
         </nav>
@@ -150,10 +157,14 @@ export default function Header({
               <button
                 key={idx}
                 onClick={() => handleMenuItemClick(item.sectionId)}
-                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl font-bold text-slate-700 flex items-center justify-between"
+                className={`p-3 rounded-xl font-bold flex items-center justify-between transition-all ${
+                  item.isHighlight 
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white col-span-2 shadow-sm font-black' 
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
+                }`}
               >
                 <span>{item.label}</span>
-                <ChevronRight size={12} className="text-slate-400" />
+                <ChevronRight size={12} className={item.isHighlight ? 'text-white' : 'text-slate-400'} />
               </button>
             ))}
           </div>

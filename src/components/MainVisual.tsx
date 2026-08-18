@@ -231,7 +231,26 @@ export default function MainVisual({
             회화 수업은 화상수업으로 진행됩니다.
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-2 w-full sm:w-auto justify-center lg:justify-start">
+          {/* Highlighted Camp Promotion Callout */}
+          <button
+            onClick={() => {
+              const el = document.getElementById('camp-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="w-full sm:w-auto p-3 sm:px-4 sm:py-2.5 rounded-2xl bg-gradient-to-r from-orange-500/20 via-amber-500/20 to-blue-500/20 border border-orange-400/40 hover:border-orange-400 text-left flex items-center justify-between gap-3 group transition-all cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-orange-500 text-white text-[10px] font-black rounded-md animate-pulse">
+                HOT
+              </span>
+              <span className="text-xs font-bold text-slate-100">
+                ✈️ 2027 캐나다·뉴질랜드 해외 스쿨링 & 아이비리그 투어 캠프 모집 중
+              </span>
+            </div>
+            <ArrowRight size={14} className="text-orange-400 group-hover:translate-x-1 transition-transform shrink-0" />
+          </button>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-1 w-full sm:w-auto justify-center lg:justify-start">
             <button
               onClick={() => {
                 const element = document.getElementById('quick-consult-form');
