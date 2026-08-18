@@ -71,7 +71,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
             email: cleanEmail || 'admin@english.com',
             name: cleanEmail === 'rlawldjs89@gmail.com' ? '관리자 (rlawldjs89)' : '최고관리자',
             role: 'admin',
-            contact: '010-1234-5678',
+            contact: '010-8374-6543',
             createdAt: new Date().toISOString(),
           };
           setCurrentUser(adminUser);
