@@ -50,7 +50,7 @@ export default function Header({
           </div>
           <div>
             <h1 className="text-sm md:text-base font-black text-slate-900 tracking-tight leading-none">
-              OnlyOne English
+              Only One Study
             </h1>
             <p className="text-[9px] text-slate-400 mt-0.5 font-semibold">1:1 Premium Matching Platform</p>
           </div>
