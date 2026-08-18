@@ -32,20 +32,15 @@ export default function App() {
   const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers'>(() => {
     const savedView = localStorage.getItem('active_view_v1');
     const currentUser = getCurrentUser();
-    if (savedView) {
-      const validViews = ['home', 'booking', 'mypage', 'admin', 'teachers'];
-      if (validViews.includes(savedView)) {
-        if (savedView === 'admin') {
-          if (!currentUser || currentUser.role === 'admin' || isAdminEmail(currentUser.email)) {
-            return 'admin';
-          }
-        } else {
-          return savedView as 'home' | 'booking' | 'mypage' | 'admin' | 'teachers';
-        }
-      }
+    const isAdmin = Boolean(currentUser && (currentUser.role === 'admin' || isAdminEmail(currentUser.email)));
+    if (savedView === 'admin') {
+      return isAdmin ? 'admin' : 'home';
     }
-    if (currentUser) {
-      return (currentUser.role === 'admin' || isAdminEmail(currentUser.email)) ? 'admin' : 'mypage';
+    if (savedView === 'mypage') {
+      return currentUser ? 'mypage' : 'home';
+    }
+    if (savedView && ['home', 'booking', 'teachers'].includes(savedView)) {
+      return savedView as 'home' | 'booking' | 'teachers';
     }
     return 'home';
   });
@@ -81,13 +76,6 @@ export default function App() {
     setUser(loadedUser);
     setBookings(getBookings());
     setBookingCount(getBookings().length);
-    if (loadedUser && !localStorage.getItem('active_view_v1')) {
-      if (loadedUser.role === 'admin') {
-        changeView('admin');
-      } else {
-        changeView('mypage');
-      }
-    }
 
     // Subscribe to Firestore real-time updates across all devices (PC, Mobile, Admin)
     const unsubscribe = subscribeBookings((latestBookings) => {
@@ -302,14 +290,42 @@ export default function App() {
         )}
 
         {activeView === 'admin' && (
-          <AdminDashboard 
-            bookings={bookings}
-            onBookingsChange={(updated) => {
-              setBookings(updated);
-              setBookingCount(updated.length);
-            }}
-            onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          />
+          (user && (user.role === 'admin' || isAdminEmail(user.email))) ? (
+            <AdminDashboard 
+              bookings={bookings}
+              onBookingsChange={(updated) => {
+                setBookings(updated);
+                setBookingCount(updated.length);
+              }}
+              onOpenAuthModal={() => setIsAuthModalOpen(true)}
+            />
+          ) : (
+            <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-100 shadow-xl text-center space-y-6">
+              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <Shield size={32} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-slate-900">관리자 전용 페이지</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  상담 내역 및 예약 관리 대시보드는 관리자 계정으로 로그인한 경우에만 접근할 수 있습니다.
+                </p>
+              </div>
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="w-full py-3.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                >
+                  관리자 계정으로 로그인하기
+                </button>
+                <button
+                  onClick={() => changeView('home')}
+                  className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  홈으로 돌아가기
+                </button>
+              </div>
+            </div>
+          )
         )}
       </main>
 
@@ -327,7 +343,7 @@ export default function App() {
             <div className="md:col-span-5 space-y-2.5 text-xs text-slate-400">
               <h4 className="font-bold text-slate-200">고객 지원 및 해피콜 운영</h4>
               <p>학습 지원 팀장 : <span className="text-slate-300 font-medium">김지언</span></p>
-              <p>교육 상담 문의 : <strong className="text-white text-sm">010-2256-5454</strong></p>
+              <p>교육 상담 문의 : <strong className="text-white text-sm">010-8374-6543</strong></p>
             </div>
           </div>
 
@@ -363,13 +379,13 @@ export default function App() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-slate-400">대표전화 즉시 통화 연결</p>
-                  <p className="text-xl font-black text-blue-900">010-2256-5454</p>
+                  <p className="text-xl font-black text-blue-900">010-8374-6543</p>
                 </div>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
                   모바일 환경의 경우 아래 전화를 누르시면 바로 수강 대표번호로 전화 연결이 가능합니다.
                 </p>
                 <a
-                  href="tel:010-2256-5454"
+                  href="tel:010-8374-6543"
                   className="block w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs rounded-xl transition-colors shadow-sm"
                 >
                   지금 즉시 전화걸기
@@ -435,17 +451,17 @@ export default function App() {
 
         {/* Bottom Floating Badge: Friendly Phone Consultation Badge */}
         <motion.a 
-          href="tel:010-1234-5678"
+          href="tel:010-8374-6543"
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ delay: 1 }}
           className="flex flex-col items-end gap-1.5 group cursor-pointer no-underline"
-          title="친절한 전화상담 바로 연결 (010-1234-5678)"
+          title="친절한 전화상담 바로 연결 (010-8374-6543)"
           onClick={(e) => {
             // Friendly popup fallback if clicked on desktop without telephony support
             if (!navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/i)) {
               e.preventDefault();
-              alert('📞 친절한 1:1 전화상담 안내\n\n직통 전화번호: 010-1234-5678\n(대표번호: 1588-0000)\n\n모바일 기기에서는 바로 전화 연결이 실행됩니다!');
+              alert('📞 친절한 1:1 전화상담 안내\n\n직통 전화번호: 010-8374-6543\n\n모바일 기기에서는 바로 전화 연결이 실행됩니다!');
             }
           }}
         >
