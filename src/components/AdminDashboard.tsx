@@ -79,7 +79,13 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
           testPass: inputSmtpPass || undefined,
         }),
       });
-      const data = await res.json();
+      const resText = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(resText);
+      } catch {
+        throw new Error('서버가 준비 중입니다. 잠시 후 다시 [테스트 메일 즉시 발송]을 눌러주세요.');
+      }
       setEmailTestResult(data);
       if (data.success) {
         loadEmailConfig();
@@ -105,7 +111,13 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
           isEnabled: true,
         }),
       });
-      const data = await res.json();
+      const resText = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(resText);
+      } catch {
+        throw new Error('서버 연결 중입니다. 잠시 후 다시 시도해 주세요.');
+      }
       if (data.success) {
         alert('✅ 네이버 메일(deux102@naver.com) 알림 설정이 안전하게 저장되었습니다!');
         loadEmailConfig();
