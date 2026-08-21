@@ -24,7 +24,7 @@ interface GedCourseProps {
 }
 
 export default function GedCourse({ onNavigateToBooking }: GedCourseProps) {
-  const [activeTab, setActiveTab] = useState<'high' | 'middle' | 'elementary'>('high');
+  const [activeTab, setActiveTab] = useState<'high' | 'middle'>('high');
 
   const gedCategories = [
     {
@@ -66,26 +66,6 @@ export default function GedCourse({ onNavigateToBooking }: GedCourseProps) {
       ],
       color: 'from-emerald-600 to-teal-600',
       tagColor: 'bg-emerald-500/10 text-emerald-700 border-emerald-200'
-    },
-    {
-      id: 'elementary',
-      badge: '따뜻한 눈높이 1:1 지도',
-      title: '초졸 검정고시 & 첫걸음반',
-      subtitle: '초등학교 졸업 학력 취득 및 중학교 학습을 위한 자신감 회복 프로그램',
-      target: '학습 시기를 놓친 성인 학습자, 다문화 가정, 홈스쿨링 아동',
-      examSchedule: '매년 4월 / 8월 (연 2회 시행)',
-      subjects: [
-        { name: '필수 4과목', list: '국어, 수학, 사회, 과학' },
-        { name: '선택 2과목', list: '도덕, 체육, 음악, 미술, 실과, 영어 중 택2' }
-      ],
-      features: [
-        '친절하고 다정한 전문 강사의 1:1 눈높이 맞춤 설명으로 학습 거부감 해소',
-        '읽기, 쓰기, 기초 연산부터 차근차근 익히는 칭찬 중심 코칭',
-        '글씨 쓰기 및 시험장 마킹 요령 등 실전 시험장 적응 훈련',
-        '자신감 향상 및 중학교 과정으로의 원활한 연결'
-      ],
-      color: 'from-amber-600 to-orange-600',
-      tagColor: 'bg-amber-500/10 text-amber-700 border-amber-200'
     }
   ];
 
@@ -147,7 +127,7 @@ export default function GedCourse({ onNavigateToBooking }: GedCourseProps) {
         <div className="max-w-3xl text-center mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold tracking-wide">
             <GraduationCap size={15} />
-            <span>초·중·고 검정고시 1:1 전문 코칭 & 대입 입시 로드맵</span>
+            <span>중·고졸 검정고시 1:1 전문 코칭 & 대입 입시 로드맵</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight keep-all break-keep">
@@ -166,10 +146,10 @@ export default function GedCourse({ onNavigateToBooking }: GedCourseProps) {
 
         {/* Tab Navigation */}
         <div className="flex justify-center">
-          <div className="inline-flex p-1.5 bg-slate-800/80 rounded-2xl border border-slate-700/80 gap-1.5 max-w-xl w-full sm:w-auto">
+          <div className="inline-flex p-1.5 bg-slate-800/80 rounded-2xl border border-slate-700/80 gap-1.5 max-w-md w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('high')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`flex-1 sm:flex-none px-6 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'high'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
@@ -179,23 +159,13 @@ export default function GedCourse({ onNavigateToBooking }: GedCourseProps) {
             </button>
             <button
               onClick={() => setActiveTab('middle')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`flex-1 sm:flex-none px-6 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'middle'
                   ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30 scale-[1.02]'
                   : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
               }`}
             >
               <span>📚</span> 중졸 검정고시 (기초반)
-            </button>
-            <button
-              onClick={() => setActiveTab('elementary')}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                activeTab === 'elementary'
-                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-600/30 scale-[1.02]'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              <span>🌱</span> 초졸 검정고시 (첫걸음)
             </button>
           </div>
         </div>

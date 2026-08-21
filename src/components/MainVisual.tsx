@@ -33,7 +33,6 @@ export default function MainVisual({
     ? [
         '고졸 검정고시',
         '중졸 검정고시',
-        '초졸 검정고시',
         '국어',
         '영어',
         '수학',
@@ -519,7 +518,6 @@ export default function MainVisual({
                       <>
                         <option value="고졸 검정고시 (대입반)">고졸 검정고시 (대입반)</option>
                         <option value="중졸 검정고시 (기초반)">중졸 검정고시 (기초반)</option>
-                        <option value="초졸 검정고시 (첫걸음)">초졸 검정고시 (첫걸음)</option>
                         <option value="대입 수시/정시 입시 컨설팅">대입 수시/정시 입시 컨설팅</option>
                         <option value="검정고시 전과목 고득점 단기완성">검정고시 전과목 고득점 단기완성</option>
                       </>

@@ -257,7 +257,7 @@ export default function App() {
             {/* SECTION 5. 교과 내신 및 인증시험 대비 */}
             <ExamPreparation onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 6. 초·중·고 검정고시 1:1 맞춤 코칭 & 대입 전략 */}
+            {/* SECTION 6. 중·고졸 검정고시 1:1 맞춤 코칭 & 대입 전략 */}
             <GedCourse onNavigateToBooking={handleNavigateToBooking} />
 
             {/* SECTION 7. 해외 스쿨링 캠프 및 조기유학 컨설팅 */}

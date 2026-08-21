@@ -144,7 +144,6 @@ interface InterviewSectionProps {
 }
 
 export default function InterviewSection({ onNavigateToBooking }: InterviewSectionProps) {
-  const [activeTab, setActiveTab] = useState<'all' | 'student' | 'coach'>('all');
   const [selectedVideo, setSelectedVideo] = useState<InterviewItem | null>(null);
 
   const interviewList: InterviewItem[] = [
@@ -222,84 +221,8 @@ export default function InterviewSection({ onNavigateToBooking }: InterviewSecti
         '모의고사/수능 빈출 유형 집중 마스터',
         '의약/간호 계열 전공 맞춤형 포트폴리오'
       ]
-    },
-    {
-      id: 'inv-4',
-      youtubeId: 'Tbl5XkprBf0',
-      type: 'coach',
-      tag: '청소년 전문 코치',
-      speaker: '박서현 수석 코치',
-      role: 'KAC 청소년 코칭 자격 보유 / 9년차',
-      grade: '초·중·고 전과목',
-      subject: '수학·학습코칭',
-      title: '“아이들이 가진 고민과 걱정이, 기대와 확신이 될 수 있도록!”',
-      subQuote: '“공부를 못하는 아이는 없습니다. 맞는 공부법과 페이스를 찾으면 반드시 바뀝니다”',
-      summary: '단순 지식 전달이 아닌 아이의 공부 성향(KCPA)을 진단하고, 스스로 질문하고 답을 찾는 메타인지 공부법을 코칭하는 교육 철학 인터뷰.',
-      duration: '4분 45초',
-      views: '9,340회',
-      highlightQuotes: [
-        '칭찬과 경청을 통해 학습 자존감을 먼저 세워주면, 아이 스스로 책상에 앉게 됩니다.',
-        '매 수업 후 학부모님께 보내드리는 상세 피드백 리포트로 부모님과의 신뢰도 함께 쌓아갑니다.'
-      ],
-      keyPoints: [
-        'KCPA 진단 기반 성향별 맞춤 코칭',
-        '메타인지 질문 중심의 참여형 수업',
-        '매 수업 후 학부모 안심 피드백 리포트'
-      ]
-    },
-    {
-      id: 'inv-5',
-      youtubeId: 'GXCWEab4GyY',
-      type: 'coach',
-      tag: '과목별 1타 코치',
-      speaker: '최민준 전문 코치',
-      role: '서울대 수학교육 전공 / 11년차',
-      grade: '중·고등 수학',
-      subject: '수학 전과정',
-      title: '“수학은 암기가 아닙니다! 각자에게 맞는 방법으로 스웩(SWAG)있게!”',
-      subQuote: '“구멍 난 개념을 1:1로 메우고 오답을 스스로 말로 설명하는 순간 점수는 폭발합니다”',
-      summary: '수학포기자(수포자)도 3개월 만에 30점 이상 끌어올리는 비법! 원리 이해와 매일 15분 오답 클리닉의 파격적인 성적 상승 노하우 대공개.',
-      duration: '6분 10초',
-      views: '15,600회',
-      highlightQuotes: [
-        '수학 30점대 학생에게 킬러문항을 주면 포기합니다. 반드시 하위 개념부터 1:1로 메워야 폭발적 성장이 일어납니다.',
-        '풀이 과정을 스스로 말로 설명해보게 하면 어떤 부분에서 개념이 꼬였는지 1분 만에 찾아낼 수 있습니다.'
-      ],
-      keyPoints: [
-        '구멍 난 하위 개념 1:1 역추적 메우기',
-        '백지 개념 설명 & 오답 메타인지',
-        '수능 4점 킬러 유형별 공략법 전수'
-      ]
-    },
-    {
-      id: 'inv-6',
-      youtubeId: 'dwZVTSEwxhw',
-      type: 'student',
-      tag: '초등 습관 완성',
-      speaker: '박지안 학생 & 어머니',
-      role: '초4 자녀 학부모',
-      grade: '초등학교 4학년',
-      subject: '국어 문해력·초등수학',
-      title: '“스마트폰만 보던 아이가 책상에 먼저 앉아 독서 마인드맵을 그려요”',
-      subQuote: '“아이가 선생님 오시는 날만 기다려요! 공부에 대한 거부감이 완전히 사라졌습니다”',
-      summary: '집중력이 짧아 학원 수업을 힘들어하던 초등학생 아이가 선생님의 따뜻한 눈높이 코칭과 흥미 중심 문해력 지도로 바른 공부 습관을 형성한 가슴 뭉클한 이야기.',
-      duration: '4분 15초',
-      views: '8,750회',
-      highlightQuotes: [
-        '단순히 숙제를 강요하는 게 아니라, 아이의 관심사에 맞춘 질문으로 생각의 힘을 길러주셨어요.',
-        '선생님이 오시는 날을 아이가 손꼽아 기다릴 정도로 공부에 대한 거부감이 완전히 사라졌습니다.'
-      ],
-      keyPoints: [
-        '스스로 질문하고 정리하는 독서 마인드맵',
-        '기초 연산과 서술형 문장 쓰기 습관',
-        '매회 수업 후 부모님께 상세 피드백 전달'
-      ]
     }
   ];
-
-  const filteredList = activeTab === 'all' 
-    ? interviewList 
-    : interviewList.filter(item => item.type === activeTab);
 
   return (
     <section id="interview-section" className="py-16 md:py-24 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-white relative overflow-hidden">
@@ -317,52 +240,18 @@ export default function InterviewSection({ onNavigateToBooking }: InterviewSecti
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-white keep-all break-keep">
             진짜 성적이 오르는 이유,<br className="block md:hidden" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-sky-300">
-              회원 & 코치 생생 인터뷰 영상
+              합격회원 생생 인터뷰 영상
             </span>
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-400 leading-relaxed keep-all break-keep">
-            경희대·고려대·성신여대 합격생의 3년 코칭 성공 스토리부터,<br className="hidden sm:inline" />
-            한국코치협회(KAC) 공인 청소년 전문 코치진의 교육 철학을 영상으로 직접 재생해 보세요.
+            경희대·고려대·성신여대 합격생의 1:1 코칭 성공 스토리와 노하우를<br className="hidden sm:inline" />
+            실제 유튜브 영상으로 직접 확인해 보세요.
           </p>
-
-          {/* Filter Tabs */}
-          <div className="inline-flex p-1 bg-slate-800/80 rounded-2xl border border-slate-700/80 gap-1 mt-4">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'all'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              전체 영상 ({interviewList.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('student')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'student'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              <GraduationCap size={14} /> 합격생 & 학부모 인터뷰
-            </button>
-            <button
-              onClick={() => setActiveTab('coach')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'coach'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              <UserCheck size={14} /> 전문 코치 철학 & 노하우
-            </button>
-          </div>
         </div>
 
         {/* Video Card Grid with Real YouTube Thumbnails */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredList.map((item) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {interviewList.map((item) => (
             <div
               key={item.id}
               onClick={() => setSelectedVideo(item)}
