@@ -1,103 +1,164 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import nodemailer from "nodemailer";
 import { createServer as createViteServer } from "vite";
 
 const app = express();
 const PORT = 3000;
 const DATA_FILE = path.join(process.cwd(), 'bookings.json');
-const TELEGRAM_CONFIG_FILE = path.join(process.cwd(), 'telegram-config.json');
+const EMAIL_CONFIG_FILE = path.join(process.cwd(), 'email-config.json');
 
-// Helper to get Telegram Bot configuration
-function getTelegramConfig() {
+// Helper to get Email configuration
+function getEmailConfig() {
   let config = {
-    botToken: process.env.TELEGRAM_BOT_TOKEN || '',
-    chatId: process.env.TELEGRAM_CHAT_ID || '',
+    recipientEmail: 'deux102@naver.com',
+    senderEmail: 'deux102@naver.com',
+    smtpHost: 'smtp.naver.com',
+    smtpPort: 465,
+    smtpSecure: true,
+    smtpUser: 'deux102@naver.com',
+    smtpPass: process.env.NAVER_SMTP_PASS || '',
     notifyPhone: '010-8374-6543',
     isEnabled: true,
   };
-  if (fs.existsSync(TELEGRAM_CONFIG_FILE)) {
+  if (fs.existsSync(EMAIL_CONFIG_FILE)) {
     try {
-      const fileData = JSON.parse(fs.readFileSync(TELEGRAM_CONFIG_FILE, 'utf8'));
+      const fileData = JSON.parse(fs.readFileSync(EMAIL_CONFIG_FILE, 'utf8'));
       config = { ...config, ...fileData };
     } catch (e) {
-      console.error('Error reading telegram-config.json:', e);
+      console.error('Error reading email-config.json:', e);
     }
   }
   return config;
 }
 
-function saveTelegramConfig(config: { botToken?: string; chatId?: string; notifyPhone?: string; isEnabled?: boolean }) {
+function saveEmailConfig(configUpdate: Partial<ReturnType<typeof getEmailConfig>>) {
   try {
-    const current = getTelegramConfig();
-    const merged = { ...current, ...config };
-    fs.writeFileSync(TELEGRAM_CONFIG_FILE, JSON.stringify(merged, null, 2), 'utf8');
+    const current = getEmailConfig();
+    const merged = { ...current, ...configUpdate };
+    fs.writeFileSync(EMAIL_CONFIG_FILE, JSON.stringify(merged, null, 2), 'utf8');
     return merged;
   } catch (e) {
-    console.error('Failed to save telegram config:', e);
+    console.error('Failed to save email config:', e);
     return null;
   }
 }
 
-// Format booking details into Telegram message
-function formatBookingTelegramMessage(booking: any) {
+// Format booking HTML for clean email viewing
+function formatBookingEmailHtml(booking: any) {
   const dateStr = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
-  return `🔔 <b>[Only One Study] 신규 무료 상담 신청 접수!</b>
+  return `
+    <div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+      <div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); padding: 24px; border-radius: 12px; text-align: center; color: #ffffff; margin-bottom: 20px;">
+        <span style="display: inline-block; background-color: #f97316; color: #ffffff; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-bottom: 8px;">실시간 신청 접수</span>
+        <h1 style="font-size: 20px; font-weight: 800; margin: 6px 0; letter-spacing: -0.5px;">🔔 [Only One Study] 신규 무료 상담 신청</h1>
+        <p style="font-size: 13px; color: #93c5fd; margin: 0;">학부모/학생의 새로운 1:1 과외 및 학습 상담 신청이 접수되었습니다.</p>
+      </div>
 
-👤 <b>신청자:</b> ${booking.applicantName || '미기재'} (${booking.relationship || '본인'})
-📞 <b>연락처:</b> ${booking.contact || '미기재'}
-🎓 <b>수강생/학년:</b> ${booking.studentName || '미기재'} (${booking.gradeOrJob || (booking.studentAge ? `${booking.studentAge}세` : '미기재')})
-📚 <b>신청 과목:</b> <b>${booking.selectedCourse || '미기재'}</b>
-📍 <b>거주 지역:</b> ${booking.region || '미기재'}
-🚗 <b>희망 방식:</b> ${booking.classType || '미기재'}
-🗓️ <b>희망 일정:</b> ${booking.preferredDate || '빠른 상담'} ${booking.preferredTimeSlot ? `(${booking.preferredTimeSlot})` : ''}
-💡 <b>신청 사유:</b> ${booking.reason || '상담 요청'}
-🎯 <b>학습 목표:</b> ${booking.goals || '기초 향상 및 성적 향상'}
-👩‍🏫 <b>선생님 선호:</b> ${booking.preferredTeacherGender || '무관'}
-⏰ <b>접수 시간:</b> ${dateStr}
+      <div style="background-color: #ffffff; padding: 20px 24px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+        <h2 style="font-size: 15px; font-weight: 700; color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-top: 0; margin-bottom: 16px;">
+          📋 신청자 & 학생 상세 정보
+        </h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600; width: 120px;">신청자 (관계)</td>
+            <td style="padding: 10px 0; color: #0f172a; font-weight: 700;">${booking.applicantName || '미기재'} (${booking.relationship || '본인'})</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">연락처</td>
+            <td style="padding: 10px 0; color: #2563eb; font-weight: 800; font-size: 15px;">
+              <a href="tel:${booking.contact}" style="color: #2563eb; text-decoration: none;">${booking.contact || '미기재'}</a>
+            </td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">수강생 이름 / 학년</td>
+            <td style="padding: 10px 0; color: #0f172a; font-weight: 700;">${booking.studentName || '미기재'} (${booking.gradeOrJob || (booking.studentAge ? `${booking.studentAge}세` : '미기재')})</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">희망 과목</td>
+            <td style="padding: 10px 0; color: #ea580c; font-weight: 800; font-size: 14px;">${booking.selectedCourse || '미기재'}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">거주 지역</td>
+            <td style="padding: 10px 0; color: #0f172a; font-weight: 600;">${booking.region || '미기재'}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">수업 방식</td>
+            <td style="padding: 10px 0; color: #0f172a; font-weight: 600;">${booking.classType || '방문/화상 협의'}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">희망 일정/시간대</td>
+            <td style="padding: 10px 0; color: #0f172a;">${booking.preferredDate || '빠른 상담'} ${booking.preferredTimeSlot ? `(${booking.preferredTimeSlot})` : ''}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">현재 학습 수준</td>
+            <td style="padding: 10px 0; color: #0f172a;">${booking.currentLevel || '상담 시 진단'}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">선생님 선호</td>
+            <td style="padding: 10px 0; color: #0f172a;">${booking.preferredTeacherGender || '무관'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600; vertical-align: top;">상담 및 신청 사유</td>
+            <td style="padding: 10px 0; color: #334155; line-height: 1.6;">${booking.reason || '없음'}</td>
+          </tr>
+        </table>
+      </div>
 
-👉 <i>관리자 대시보드에서 신청서 확인 및 담당 강사를 배정해 주세요.</i>`;
+      <div style="background-color: #eff6ff; padding: 14px 18px; border-radius: 10px; border: 1px solid #bfdbfe; font-size: 12px; color: #1e40af; margin-bottom: 20px;">
+        💡 <strong>관리자 조치 안내:</strong> 빠른 상담 진행을 위해 학부모님(${booking.contact || ''})께 유선 연락 또는 담당 코치님 배정을 진행해 주세요.
+      </div>
+
+      <div style="text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+        Only One Study 과외 관리자 자동 알림 시스템 | 수신: deux102@naver.com | 접수일시: ${dateStr}
+      </div>
+    </div>
+  `;
 }
 
-// Function to send message via Telegram Bot API
-async function sendTelegramNotification(text: string): Promise<{ success: boolean; message?: string }> {
-  const config = getTelegramConfig();
-  const token = config.botToken || process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = config.chatId || process.env.TELEGRAM_CHAT_ID;
+// Function to send Email via Nodemailer
+async function sendEmailNotification(subject: string, htmlContent: string, textContent?: string): Promise<{ success: boolean; message?: string }> {
+  const config = getEmailConfig();
+  const recipient = config.recipientEmail || 'deux102@naver.com';
 
-  if (!token || !chatId) {
-    console.log('Telegram notification skipped: botToken or chatId not configured yet.');
-    return { success: false, message: '텔레그램 봇 토큰(Bot Token) 또는 Chat ID가 설정되지 않았습니다.' };
+  if (!config.isEnabled) {
+    return { success: false, message: '이메일 알림이 비활성화 상태입니다.' };
   }
 
-  if (config.isEnabled === false) {
-    return { success: false, message: '텔레그램 알림이 비활성화 상태입니다.' };
+  // If no password set, return informative message
+  if (!config.smtpPass) {
+    console.log(`[Email Notification Log] Recipient: ${recipient} | Subject: ${subject}`);
+    return {
+      success: false,
+      message: '네이버 메일 비밀번호(또는 2단계 인증 애플리케이션 비밀번호) 설정이 필요합니다.',
+    };
   }
 
   try {
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: text,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
+    const transporter = nodemailer.createTransport({
+      host: config.smtpHost || 'smtp.naver.com',
+      port: Number(config.smtpPort) || 465,
+      secure: config.smtpSecure !== false, // true for 465
+      auth: {
+        user: config.smtpUser || 'deux102@naver.com',
+        pass: config.smtpPass,
+      },
     });
 
-    const resJson: any = await response.json();
-    if (resJson.ok) {
-      console.log('Telegram notification sent successfully to chat:', chatId);
-      return { success: true };
-    } else {
-      console.error('Telegram API error:', resJson);
-      return { success: false, message: resJson.description || '텔레그램 발송 실패' };
-    }
+    const info = await transporter.sendMail({
+      from: `"온리원스터디 알림" <${config.smtpUser || 'deux102@naver.com'}>`,
+      to: recipient,
+      subject: subject,
+      text: textContent || '신규 무료 상담 신청이 접수되었습니다.',
+      html: htmlContent,
+    });
+
+    console.log(`[Email Notification Sent] Message ID: ${info.messageId} to ${recipient}`);
+    return { success: true, message: `메일이 ${recipient} (네이버 메일)로 성공적으로 전송되었습니다.` };
   } catch (err: any) {
-    console.error('Telegram send error:', err);
-    return { success: false, message: err.message || '네트워크 오류' };
+    console.error('Email send error:', err);
+    return { success: false, message: err.message || '네이버 메일 SMTP 발송 오류가 발생했습니다.' };
   }
 }
 
@@ -284,9 +345,10 @@ async function startServer() {
         const updated = [booking, ...current];
         saveBookings(updated);
 
-        // Auto Send Telegram Notification for new booking
-        sendTelegramNotification(formatBookingTelegramMessage(booking)).catch((err) => {
-          console.error("Failed to send telegram notification:", err);
+        // Auto Send Email Notification to Naver Mail (deux102@naver.com)
+        const emailSubject = `🔔 [신규 상담 접수] ${booking.applicantName || '학부모'}님 (${booking.selectedCourse || '과외 상담'}) - ${booking.contact || ''}`;
+        sendEmailNotification(emailSubject, formatBookingEmailHtml(booking)).catch((err) => {
+          console.error("Failed to send email notification:", err);
         });
 
         res.json(updated);
@@ -298,94 +360,129 @@ async function startServer() {
     }
   });
 
-  // API Route: POST /api/notify-telegram/booking (Explicit notification trigger)
-  app.post("/api/notify-telegram/booking", async (req, res) => {
+  // API Route: POST /api/notify-email/booking (Explicit notification trigger)
+  app.post("/api/notify-email/booking", async (req, res) => {
     const { booking } = req.body;
     if (!booking) {
       return res.status(400).json({ error: "Booking data required" });
     }
-    const result = await sendTelegramNotification(formatBookingTelegramMessage(booking));
+    const emailSubject = `🔔 [신규 상담 접수] ${booking.applicantName || '학부모'}님 (${booking.selectedCourse || '과외 상담'}) - ${booking.contact || ''}`;
+    const result = await sendEmailNotification(emailSubject, formatBookingEmailHtml(booking));
     res.json(result);
   });
 
-  // API Route: GET /api/telegram-config
-  app.get("/api/telegram-config", (req, res) => {
-    const config = getTelegramConfig();
-    const maskedToken = config.botToken
-      ? `${config.botToken.slice(0, 6)}...${config.botToken.slice(-4)}`
-      : '';
+  // API Route: GET /api/email-config
+  app.get("/api/email-config", (req, res) => {
+    const config = getEmailConfig();
     res.json({
-      hasToken: Boolean(config.botToken),
-      botTokenMasked: maskedToken,
-      chatId: config.chatId,
+      recipientEmail: config.recipientEmail || 'deux102@naver.com',
+      senderEmail: config.senderEmail || 'deux102@naver.com',
+      smtpHost: config.smtpHost || 'smtp.naver.com',
+      smtpPort: config.smtpPort || 465,
+      smtpUser: config.smtpUser || 'deux102@naver.com',
+      isConfigured: Boolean(config.smtpPass),
       notifyPhone: config.notifyPhone || '010-8374-6543',
       isEnabled: config.isEnabled !== false,
     });
   });
 
-  // API Route: POST /api/telegram-config
-  app.post("/api/telegram-config", (req, res) => {
-    const { botToken, chatId, notifyPhone, isEnabled } = req.body;
-    const current = getTelegramConfig();
-    const updated = saveTelegramConfig({
-      botToken: botToken !== undefined && botToken !== '' ? botToken : current.botToken,
-      chatId: chatId !== undefined ? chatId : current.chatId,
-      notifyPhone: notifyPhone || current.notifyPhone || '010-8374-6543',
+  // API Route: POST /api/email-config
+  app.post("/api/email-config", (req, res) => {
+    const { recipientEmail, smtpPass, smtpUser, isEnabled } = req.body;
+    const current = getEmailConfig();
+    const updated = saveEmailConfig({
+      recipientEmail: recipientEmail || current.recipientEmail || 'deux102@naver.com',
+      senderEmail: recipientEmail || current.senderEmail || 'deux102@naver.com',
+      smtpUser: smtpUser || current.smtpUser || 'deux102@naver.com',
+      smtpPass: smtpPass !== undefined && smtpPass !== '' ? smtpPass : current.smtpPass,
       isEnabled: isEnabled !== undefined ? isEnabled : current.isEnabled,
     });
     if (updated) {
-      res.json({ success: true, config: {
-        hasToken: Boolean(updated.botToken),
-        chatId: updated.chatId,
-        notifyPhone: updated.notifyPhone,
-        isEnabled: updated.isEnabled,
-      }});
+      res.json({
+        success: true,
+        config: {
+          recipientEmail: updated.recipientEmail,
+          smtpUser: updated.smtpUser,
+          isConfigured: Boolean(updated.smtpPass),
+          isEnabled: updated.isEnabled,
+        },
+      });
     } else {
-      res.status(500).json({ error: "Failed to save configuration" });
+      res.status(500).json({ error: "Failed to save email configuration" });
     }
   });
 
-  // API Route: POST /api/notify-telegram/test
-  app.post("/api/notify-telegram/test", async (req, res) => {
-    const { testChatId, testBotToken } = req.body || {};
-    const config = getTelegramConfig();
-    const token = testBotToken || config.botToken || process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = testChatId || config.chatId || process.env.TELEGRAM_CHAT_ID;
+  // API Route: POST /api/notify-email/test
+  app.post("/api/notify-email/test", async (req, res) => {
+    const { testEmail, testPass } = req.body || {};
+    const config = getEmailConfig();
+    const recipient = testEmail || config.recipientEmail || 'deux102@naver.com';
+    const pass = testPass || config.smtpPass;
 
-    if (!token || !chatId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: '텔레그램 Bot Token과 Chat ID가 필요합니다. 설정창에서 입력 후 테스트해 주세요.' 
+    if (!pass) {
+      return res.status(400).json({
+        success: false,
+        message: '네이버 메일 비밀번호(또는 네이버 2단계 인증 애플리케이션 비밀번호)를 입력해 주세요.',
       });
     }
 
-    const testMessage = `🧪 <b>[Only One Study] 텔레그램 실시간 알림 연동 테스트 성공!</b>
-
-📱 <b>수신 관리자:</b> 010-8374-6543
-⏰ <b>테스트 일시:</b> ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
-
-✅ 텔레그램 봇과 채팅방이 성공적으로 연결되었습니다!
-앞으로 학부모 및 학생의 <b>신규 무료 상담/과외 신청</b>이 접수되면 이 텔레그램 채팅방으로 0.1초 만에 알림이 발송됩니다.`;
+    const testSubject = `🧪 [Only One Study] 네이버 메일(${recipient}) 실시간 알림 연동 테스트 성공!`;
+    const testHtml = `
+      <div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
+        <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 24px; border-radius: 12px; text-align: center; color: #ffffff; margin-bottom: 20px;">
+          <span style="display: inline-block; background-color: #38bdf8; color: #0c4a6e; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-bottom: 8px;">연동 테스트 성공</span>
+          <h1 style="font-size: 20px; font-weight: 800; margin: 6px 0;">🎉 네이버 메일 알림 정상 연동 확인!</h1>
+          <p style="font-size: 13px; color: #e0f2fe; margin: 0;">관리자 이메일(${recipient})로 실시간 상담 알림을 받을 준비가 완료되었습니다.</p>
+        </div>
+        <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 13px; color: #334155; line-height: 1.6;">
+          <p><strong>안녕하세요, 온리원스터디 관리자님!</strong></p>
+          <p>이 메일은 온리원스터디 과외 웹사이트에서 발송된 <strong>실시간 알림 연동 확인 메일</strong>입니다.</p>
+          <ul style="padding-left: 20px; margin: 12px 0;">
+            <li><strong>수신 이메일:</strong> ${recipient}</li>
+            <li><strong>관리자 연락처:</strong> 010-8374-6543</li>
+            <li><strong>발송 일시:</strong> ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</li>
+          </ul>
+          <p style="color: #0284c7; font-weight: 700; margin-top: 14px;">
+            ✅ 앞으로 학부모나 학생이 무료 상담을 신청하면 상세 인적사항 및 상담 내용이 즉시 이 메일함으로 자동 전송됩니다!
+          </p>
+        </div>
+      </div>
+    `;
 
     try {
-      const url = `https://api.telegram.org/bot${token}/sendMessage`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: testMessage,
-          parse_mode: 'HTML',
-        }),
+      const transporter = nodemailer.createTransport({
+        host: config.smtpHost || 'smtp.naver.com',
+        port: Number(config.smtpPort) || 465,
+        secure: config.smtpSecure !== false,
+        auth: {
+          user: config.smtpUser || 'deux102@naver.com',
+          pass: pass,
+        },
       });
-      const resJson: any = await response.json();
-      if (resJson.ok) {
-        res.json({ success: true, message: '텔레그램으로 테스트 메시지가 성공적으로 발송되었습니다!' });
-      } else {
-        res.status(400).json({ success: false, message: resJson.description || '텔레그램 발송 실패' });
+
+      await transporter.sendMail({
+        from: `"온리원스터디 알림" <${config.smtpUser || 'deux102@naver.com'}>`,
+        to: recipient,
+        subject: testSubject,
+        html: testHtml,
+      });
+
+      // If testPass succeeded and was provided, update config
+      if (testPass) {
+        saveEmailConfig({ smtpPass: testPass, recipientEmail: recipient, smtpUser: recipient });
       }
+
+      res.json({
+        success: true,
+        message: `네이버 메일(${recipient})로 테스트 메일이 성공적으로 발송되었습니다! 메일함을 확인해 주세요.`,
+      });
     } catch (err: any) {
-      res.status(500).json({ success: false, message: err.message || '네트워크 통신 오류' });
+      console.error('Test email send error:', err);
+      let userErrMsg = err.message || 'SMTP 발송 실패';
+      if (userErrMsg.includes('Invalid login') || userErrMsg.includes('535') || userErrMsg.includes('Authentication')) {
+        userErrMsg = '네이버 메일 로그인 인증에 실패했습니다. 네이버 환경설정에서 IMAP/SMTP가 "사용함"으로 켜져 있는지, 2단계 인증 시 "애플리케이션 비밀번호"가 정확한지 확인해 주세요.';
+      }
+      res.status(400).json({ success: false, message: userErrMsg });
     }
   });
 

@@ -1,0 +1,10 @@
+{
+  "recipientEmail": "deux102@naver.com",
+  "senderEmail": "deux102@naver.com",
+  "smtpHost": "smtp.naver.com",
+  "smtpPort": 465,
+  "smtpSecure": true,
+  "smtpUser": "deux102@naver.com",
+  "smtpPass": "",
+  "isEnabled": true
+}

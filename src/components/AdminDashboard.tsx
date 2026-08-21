@@ -7,7 +7,7 @@ import { mockTeachers } from '../data/teachers';
 import { 
   Users, CheckCircle2, Clock, Eye, Edit3, Trash2, Search, Filter, 
   Download, Calendar, Plus, RefreshCw, Bookmark, Award, HelpCircle, FileSpreadsheet, MapPin,
-  Shield, AlertCircle, Loader2, Bell, Send, Key, Smartphone, ExternalLink, X
+  Shield, AlertCircle, Loader2, Bell, Send, Key, Smartphone, ExternalLink, X, Mail, Check, AlertTriangle
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -26,99 +26,97 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [lastSyncedTime, setLastSyncedTime] = useState<string>('');
 
-  // Telegram real-time alert state
-  const [isTelegramModalOpen, setIsTelegramModalOpen] = useState<boolean>(false);
-  const [telegramConfig, setTelegramConfig] = useState<{
-    hasToken: boolean;
-    botTokenMasked: string;
-    chatId: string;
-    notifyPhone: string;
+  // Email real-time alert state
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState<boolean>(false);
+  const [emailConfig, setEmailConfig] = useState<{
+    recipientEmail: string;
+    smtpUser: string;
+    isConfigured: boolean;
     isEnabled: boolean;
   }>({
-    hasToken: false,
-    botTokenMasked: '',
-    chatId: '',
-    notifyPhone: '010-8374-6543',
+    recipientEmail: 'deux102@naver.com',
+    smtpUser: 'deux102@naver.com',
+    isConfigured: false,
     isEnabled: true,
   });
-  const [inputBotToken, setInputBotToken] = useState<string>('');
-  const [inputChatId, setInputChatId] = useState<string>('');
-  const [isTestingTelegram, setIsTestingTelegram] = useState<boolean>(false);
-  const [telegramTestResult, setTelegramTestResult] = useState<{ success?: boolean; message?: string } | null>(null);
-  const [isSavingTelegram, setIsSavingTelegram] = useState<boolean>(false);
+  const [inputSmtpPass, setInputSmtpPass] = useState<string>('');
+  const [inputRecipientEmail, setInputRecipientEmail] = useState<string>('deux102@naver.com');
+  const [isTestingEmail, setIsTestingEmail] = useState<boolean>(false);
+  const [emailTestResult, setEmailTestResult] = useState<{ success?: boolean; message?: string } | null>(null);
+  const [isSavingEmail, setIsSavingEmail] = useState<boolean>(false);
 
   const localUser = getCurrentUser();
   const isLocalAdmin = Boolean(localUser && (localUser.role === 'admin' || isAdminEmail(localUser.email)));
 
-  const loadTelegramConfig = async () => {
+  const loadEmailConfig = async () => {
     try {
-      const res = await fetch('/api/telegram-config');
+      const res = await fetch('/api/email-config');
       if (res.ok) {
         const data = await res.json();
-        setTelegramConfig(data);
-        if (data.chatId) {
-          setInputChatId(data.chatId);
+        setEmailConfig(data);
+        if (data.recipientEmail) {
+          setInputRecipientEmail(data.recipientEmail);
         }
       }
     } catch (e) {
-      console.warn('Failed to load telegram config:', e);
+      console.warn('Failed to load email config:', e);
     }
   };
 
   useEffect(() => {
-    loadTelegramConfig();
+    loadEmailConfig();
   }, []);
 
-  const handleTestTelegram = async () => {
-    setIsTestingTelegram(true);
-    setTelegramTestResult(null);
+  const handleTestEmail = async () => {
+    setIsTestingEmail(true);
+    setEmailTestResult(null);
     try {
-      const res = await fetch('/api/notify-telegram/test', {
+      const res = await fetch('/api/notify-email/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          testChatId: inputChatId || telegramConfig.chatId,
-          testBotToken: inputBotToken || undefined,
+          testEmail: inputRecipientEmail || emailConfig.recipientEmail,
+          testPass: inputSmtpPass || undefined,
         }),
       });
       const data = await res.json();
-      setTelegramTestResult(data);
+      setEmailTestResult(data);
       if (data.success) {
-        loadTelegramConfig();
+        loadEmailConfig();
       }
     } catch (e: any) {
-      setTelegramTestResult({ success: false, message: e.message || '네트워크 통신 오류가 발생했습니다.' });
+      setEmailTestResult({ success: false, message: e.message || '네트워크 통신 오류가 발생했습니다.' });
     } finally {
-      setIsTestingTelegram(false);
+      setIsTestingEmail(false);
     }
   };
 
-  const handleSaveTelegramConfig = async (e: React.FormEvent) => {
+  const handleSaveEmailConfig = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSavingTelegram(true);
+    setIsSavingEmail(true);
     try {
-      const res = await fetch('/api/telegram-config', {
+      const res = await fetch('/api/email-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          botToken: inputBotToken,
-          chatId: inputChatId,
-          notifyPhone: '010-8374-6543',
+          recipientEmail: inputRecipientEmail,
+          smtpUser: inputRecipientEmail,
+          smtpPass: inputSmtpPass,
           isEnabled: true,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        alert('✅ 텔레그램 알림 설정이 안전하게 저장되었습니다!');
-        loadTelegramConfig();
-        setInputBotToken('');
+        alert('✅ 네이버 메일(deux102@naver.com) 알림 설정이 안전하게 저장되었습니다!');
+        loadEmailConfig();
+        setInputSmtpPass('');
       } else {
         alert(`저장 실패: ${data.error || '오류가 발생했습니다.'}`);
       }
     } catch (e: any) {
       alert(`저장 중 오류: ${e.message}`);
     } finally {
-      setIsSavingTelegram(false);
+      setIsSavingEmail(false);
     }
   };
 
@@ -514,15 +512,13 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
         
         <div className="flex flex-wrap gap-2.5">
           <button
-            onClick={() => setIsTelegramModalOpen(true)}
-            className={`px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold shadow-md cursor-pointer ${
-              telegramConfig.hasToken && telegramConfig.chatId
-                ? 'bg-sky-500/20 text-sky-200 border border-sky-400/40 hover:bg-sky-500/30'
-                : 'bg-gradient-to-r from-sky-600 to-blue-600 text-white hover:from-sky-500 hover:to-blue-500'
-            }`}
+            onClick={() => setIsEmailModalOpen(true)}
+            className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold shadow-md shadow-emerald-600/20 cursor-pointer"
+            title="네이버 메일(deux102@naver.com) 실시간 알림 연동"
           >
-            <Bell size={14} className="animate-pulse text-sky-300" />
-            <span>텔레그램 알림 {telegramConfig.hasToken && telegramConfig.chatId ? '(연동됨)' : '(설정)'}</span>
+            <Mail size={15} />
+            <span>이메일 알림 (deux102@naver.com)</span>
+            <span className={`w-2 h-2 rounded-full ${emailConfig.isConfigured ? 'bg-white' : 'bg-amber-300'}`} />
           </button>
 
           <button
@@ -541,38 +537,39 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
         </div>
       </div>
 
-      {/* Telegram Notification Alert Card */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-sky-500/30 p-4 sm:p-5 rounded-2xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+      {/* Email Notification Status Banner */}
+      <div className="bg-gradient-to-r from-emerald-950/90 via-slate-900 to-emerald-950/90 border border-emerald-500/30 rounded-2xl p-4 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-400 flex items-center justify-center shrink-0">
-            <Smartphone size={20} />
+          <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30 shrink-0">
+            <Mail size={20} />
           </div>
-          <div>
+          <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-slate-100">
-                📱 010-8374-6543 텔레그램 실시간 상담 알림
-              </h3>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                telegramConfig.hasToken && telegramConfig.chatId
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-              }`}>
-                {telegramConfig.hasToken && telegramConfig.chatId ? '● 실시간 전송 대기 중' : '○ 연동 설정 필요'}
+              <span className="text-xs font-bold text-emerald-400">네이버 메일 실시간 알림 시스템</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                수신처: {emailConfig.recipientEmail || 'deux102@naver.com'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              학부모 및 학생이 무료 상담 또는 과외 신청서를 제출하면 0.1초 만에 관리자 텔레그램으로 신청 내역이 자동 전송됩니다.
+            <p className="text-xs text-slate-300">
+              학부모/학생의 무료 상담 신청이 접수되면 <strong>{emailConfig.recipientEmail || 'deux102@naver.com'}</strong> 메일함으로 신청자 정보가 즉시 자동 발송됩니다.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           <button
-            onClick={() => setIsTelegramModalOpen(true)}
-            className="w-full sm:w-auto px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/20 cursor-pointer"
+            onClick={handleTestEmail}
+            disabled={isTestingEmail}
+            className="flex-1 sm:flex-initial px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <Bell size={14} />
-            {telegramConfig.hasToken && telegramConfig.chatId ? '알림 설정 및 테스트' : '텔레그램 1분 연동하기'}
+            {isTestingEmail ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
+            <span>테스트 메일 발송</span>
+          </button>
+          <button
+            onClick={() => setIsEmailModalOpen(true)}
+            className="flex-1 sm:flex-initial px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+          >
+            <span>연동 설정</span>
           </button>
         </div>
       </div>
@@ -1054,26 +1051,26 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
         </div>
       )}
 
-      {/* Telegram Configuration & Instant Test Modal */}
-      {isTelegramModalOpen && (
+      {/* Naver Email Configuration & Instant Test Modal */}
+      {isEmailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white p-6 flex justify-between items-start">
+            <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white p-6 flex justify-between items-start">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="p-1.5 bg-sky-500/20 text-sky-400 rounded-lg border border-sky-400/30">
-                    <Smartphone size={16} />
+                  <span className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-400/30">
+                    <Mail size={16} />
                   </span>
-                  <span className="text-xs font-bold text-sky-300">010-8374-6543 전용 알림 연동</span>
+                  <span className="text-xs font-bold text-emerald-300">네이버 메일 (deux102@naver.com) 연동</span>
                 </div>
-                <h3 className="text-lg font-bold">📢 텔레그램 실시간 상담 알림 설정</h3>
+                <h3 className="text-lg font-bold">📧 실시간 상담 접수 이메일 알림</h3>
                 <p className="text-xs text-slate-300">
-                  신규 무료 상담 신청이 접수되는 즉시 스마트폰 텔레그램으로 알림을 전송합니다.
+                  신규 무료 상담 신청이 접수되는 즉시 관리자 네이버 메일함으로 알림을 자동 발송합니다.
                 </p>
               </div>
               <button
-                onClick={() => setIsTelegramModalOpen(false)}
+                onClick={() => setIsEmailModalOpen(false)}
                 className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
               >
                 <X size={20} />
@@ -1081,96 +1078,98 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6 text-slate-700">
+            <div className="p-6 overflow-y-auto space-y-5 text-slate-700">
               {/* Status Alert Banner */}
               <div className={`p-4 rounded-2xl border text-xs leading-relaxed flex items-start gap-3 ${
-                telegramConfig.hasToken && telegramConfig.chatId
+                emailConfig.isConfigured
                   ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                  : 'bg-amber-50 border-amber-200 text-amber-900'
+                  : 'bg-blue-50 border-blue-200 text-blue-900'
               }`}>
-                <Bell size={18} className={`shrink-0 mt-0.5 ${telegramConfig.hasToken && telegramConfig.chatId ? 'text-emerald-600' : 'text-amber-600'}`} />
+                <Bell size={18} className={`shrink-0 mt-0.5 ${emailConfig.isConfigured ? 'text-emerald-600' : 'text-blue-600'}`} />
                 <div>
                   <p className="font-bold">
-                    현재 상태: {telegramConfig.hasToken && telegramConfig.chatId ? '🟢 실시간 전송 준비 완료' : '🟡 봇 토큰 및 Chat ID 등록 필요'}
+                    현재 수신 이메일: <span className="font-mono underline">{inputRecipientEmail || emailConfig.recipientEmail || 'deux102@naver.com'}</span>
                   </p>
                   <p className="text-[11px] mt-0.5 opacity-90">
-                    {telegramConfig.hasToken && telegramConfig.chatId
-                      ? `관리자 번호 010-8374-6543과 연결된 Chat ID (${telegramConfig.chatId})로 실시간 알림이 발송됩니다.`
-                      : '아래 가이드에 따라 봇 토큰과 Chat ID를 입력하시면 1분 안에 즉시 연동됩니다.'}
+                    {emailConfig.isConfigured
+                      ? '🟢 네이버 메일 SMTP 연동이 완료되어 실시간 알림을 수신할 준비가 되었습니다.'
+                      : '아래 가이드에 따라 네이버 메일 SMTP 비밀번호(또는 앱 비밀번호)를 설정하시면 즉시 연동됩니다.'}
                   </p>
                 </div>
               </div>
 
-              {/* Step-by-Step Guide */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5 text-xs text-slate-600">
+              {/* Step-by-Step Guide for Naver Mail */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 text-xs text-slate-600">
                 <p className="font-bold text-slate-800 flex items-center gap-1.5">
-                  <span>💡</span> 텔레그램 알림 1분 설정 방법 (무료)
+                  <span>💡</span> 네이버 메일 SMTP 설정 1분 가이드
                 </p>
                 <ol className="list-decimal pl-4 space-y-1.5 text-[11px] leading-relaxed">
                   <li>
-                    텔레그램 앱 검색창에 <strong>@BotFather</strong> 검색 후 대화창에서 <code className="bg-white px-1 py-0.5 rounded font-mono font-bold text-slate-800 border">/newbot</code> 전송
+                    <strong>네이버 메일(mail.naver.com)</strong> 접속 후 좌측 하단 <strong>환경설정(⚙️)</strong> 클릭
                   </li>
                   <li>
-                    봇 이름과 아이디를 정하면 발급되는 <strong>HTTP API Token</strong>을 복사하여 아래 [Bot Token]에 입력
+                    상단 <strong>[POP3/IMAP 설정]</strong> 탭 클릭 ➔ <strong>[IMAP/SMTP 설정]</strong>에서 <code className="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold">IMAP/SMTP 사용 : 사용함</code> 선택 후 저장
                   </li>
                   <li>
-                    생성된 내 봇의 링크를 누르고 들어가 <strong>시작 (/start)</strong> 버튼 클릭
-                  </li>
-                  <li>
-                    텔레그램 검색창에 <strong>@userinfobot</strong> 검색 후 시작하여 나오는 내 고유 <strong>Id(숫자)</strong>를 아래 [Chat ID]에 입력 후 저장!
+                    네이버 2단계 인증을 사용하시는 경우, <strong>[네이버 내정보 ➔ 보안설정 ➔ 2단계 인증 ➔ 애플리케이션 비밀번호 생성]</strong>에서 생성된 영문 비밀번호를 아래 입력란에 넣으시면 가장 안전합니다.
                   </li>
                 </ol>
               </div>
 
               {/* Configuration Form */}
-              <form onSubmit={handleSaveTelegramConfig} className="space-y-4">
+              <form onSubmit={handleSaveEmailConfig} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-800 mb-1">
-                    텔레그램 봇 토큰 (Bot Token)
+                    알림 수신 이메일 주소
                   </label>
                   <div className="relative">
                     <input
-                      type="text"
-                      value={inputBotToken}
-                      onChange={(e) => setInputBotToken(e.target.value)}
-                      placeholder={telegramConfig.hasToken ? `현재 등록됨 (${telegramConfig.botTokenMasked}) - 변경 시에만 입력` : '예: 7123456789:AAFx98yZ...'}
-                      className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-600 focus:outline-hidden font-mono"
+                      type="email"
+                      value={inputRecipientEmail}
+                      onChange={(e) => setInputRecipientEmail(e.target.value)}
+                      placeholder="deux102@naver.com"
+                      className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-hidden font-mono"
+                      required
+                    />
+                    <Mail size={15} className="absolute left-3 top-3 text-slate-400" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
+                    <span>네이버 메일 SMTP 비밀번호 (또는 애플리케이션 비밀번호)</span>
+                    {emailConfig.isConfigured && (
+                      <span className="text-[10px] text-emerald-600 font-bold">✓ 이미 저장됨 (변경 시에만 입력)</span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={inputSmtpPass}
+                      onChange={(e) => setInputSmtpPass(e.target.value)}
+                      placeholder={emailConfig.isConfigured ? '•••••••••••• (새 비밀번호 설정 시 입력)' : '네이버 비밀번호 또는 앱 비밀번호'}
+                      className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-hidden font-mono"
                     />
                     <Key size={15} className="absolute left-3 top-3 text-slate-400" />
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    * @BotFather가 발급해 준 API 토큰입니다.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-800 mb-1">
-                    수신자 Chat ID (내 텔레그램 ID)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={inputChatId}
-                      onChange={(e) => setInputChatId(e.target.value)}
-                      placeholder="예: 123456789"
-                      className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-600 focus:outline-hidden font-mono"
-                    />
-                    <Smartphone size={15} className="absolute left-3 top-3 text-slate-400" />
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    * @userinfobot 에서 확인 가능한 본인 고유 숫자 ID입니다. (010-8374-6543과 연결된 계정)
+                    * SMTP 서버: <code className="text-slate-600 font-mono">smtp.naver.com (포트 465 SSL)</code>
                   </p>
                 </div>
 
                 {/* Test Result Message */}
-                {telegramTestResult && (
-                  <div className={`p-3 rounded-xl border text-xs font-semibold animate-in fade-in duration-200 ${
-                    telegramTestResult.success
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                      : 'bg-rose-50 border-rose-200 text-rose-800'
+                {emailTestResult && (
+                  <div className={`p-3.5 rounded-xl border text-xs font-medium animate-in fade-in duration-200 ${
+                    emailTestResult.success
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-rose-50 border-rose-200 text-rose-900'
                   }`}>
-                    {telegramTestResult.success ? '✅ ' : '❌ '}
-                    {telegramTestResult.message}
+                    <p className="font-bold flex items-center gap-1.5">
+                      {emailTestResult.success ? '✅ 테스트 메일 발송 성공' : '❌ 발송 테스트 실패'}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed">
+                      {emailTestResult.message}
+                    </p>
                   </div>
                 )}
 
@@ -1178,29 +1177,29 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
                 <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={handleTestTelegram}
-                    disabled={isTestingTelegram}
+                    onClick={handleTestEmail}
+                    disabled={isTestingEmail}
                     className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    {isTestingTelegram ? (
+                    {isTestingEmail ? (
                       <>
                         <Loader2 size={14} className="animate-spin" />
-                        테스트 알림 전송 중...
+                        테스트 메일 전송 중...
                       </>
                     ) : (
                       <>
                         <Send size={14} />
-                        🧪 테스트 알림 즉시 발송
+                        🧪 테스트 메일 즉시 발송
                       </>
                     )}
                   </button>
 
                   <button
                     type="submit"
-                    disabled={isSavingTelegram}
-                    className="flex-1 py-3 px-4 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/20 cursor-pointer disabled:opacity-50"
+                    disabled={isSavingEmail}
+                    className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
                   >
-                    {isSavingTelegram ? '저장 중...' : '설정 정보 저장'}
+                    {isSavingEmail ? '저장 중...' : '설정 정보 저장'}
                   </button>
                 </div>
               </form>
