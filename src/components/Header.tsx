@@ -28,9 +28,11 @@ export default function Header({
     { label: '교과·회화 과정', sectionId: 'courses-section' },
     { label: '회화 화상과정', sectionId: 'conversation-section' },
     { label: '내신·수능/어학대비', sectionId: 'exams-section' },
-    { label: '✈️ 해외캠프·유학', sectionId: 'camp-section', isHighlight: true },
+    { label: '🎓 검정고시', sectionId: 'ged-section', isHighlight: true },
+    { label: '✈️ 해외캠프·유학', sectionId: 'camp-section' },
     { label: '수업 방식', sectionId: 'comparison-section' },
     { label: '선생님 배정', sectionId: 'matching-section' },
+    { label: '🎬 생생 인터뷰', sectionId: 'interview-section' },
     { label: '수업 후기', sectionId: 'reviews-section' }
   ];
 

@@ -18,7 +18,7 @@ export default function MainVisual({
   currentUser 
 }: MainVisualProps) {
   // Form State
-  const [category, setCategory] = useState<'student' | 'adult' | 'camp'>('student');
+  const [category, setCategory] = useState<'student' | 'adult' | 'ged' | 'camp'>('student');
   const [applicantName, setApplicantName] = useState('');
   const [contact, setContact] = useState('');
   const [studentName, setStudentName] = useState('');
@@ -29,16 +29,29 @@ export default function MainVisual({
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const PROGRAM_OPTIONS = [
-    '국어',
-    '영어',
-    '수학',
-    '사회',
-    '과학',
-    '영어회화',
-    '일본어회화',
-    '중국어회화'
-  ];
+  const PROGRAM_OPTIONS = category === 'ged'
+    ? [
+        '고졸 검정고시',
+        '중졸 검정고시',
+        '초졸 검정고시',
+        '국어',
+        '영어',
+        '수학',
+        '한국사',
+        '사회·과학',
+        '전과목 종합반',
+        '1:1 대입컨설팅'
+      ]
+    : [
+        '국어',
+        '영어',
+        '수학',
+        '사회',
+        '과학',
+        '영어회화',
+        '일본어회화',
+        '중국어회화'
+      ];
 
   const toggleProgram = (prog: string) => {
     setSelectedPrograms((prev) => {
@@ -58,10 +71,16 @@ export default function MainVisual({
   React.useEffect(() => {
     if (category === 'student') {
       setGrade('초등 저학년');
+      setSelectedPrograms(['국어']);
     } else if (category === 'adult') {
       setGrade('30대 직장인');
+      setSelectedPrograms(['영어회화']);
+    } else if (category === 'ged') {
+      setGrade('고졸 검정고시 (대입반)');
+      setSelectedPrograms(['고졸 검정고시', '전과목 종합반']);
     } else if (category === 'camp') {
       setGrade('초등 5~6학년');
+      setSelectedPrograms(['영어']);
     }
   }, [category]);
 
@@ -97,6 +116,15 @@ export default function MainVisual({
         setErrorMsg('본인 연락처를 입력해 주세요.');
         return;
       }
+    } else if (category === 'ged') {
+      if (!applicantName.trim()) {
+        setErrorMsg('신청자 성함을 입력해 주세요.');
+        return;
+      }
+      if (!contact.trim()) {
+        setErrorMsg('연락처를 입력해 주세요.');
+        return;
+      }
     } else if (category === 'camp') {
       if (!applicantName.trim()) {
         setErrorMsg('학부모 성함을 입력해 주세요.');
@@ -117,11 +145,18 @@ export default function MainVisual({
       return;
     }
 
-    const finalStudentName = category === 'adult' ? applicantName.trim() : studentName.trim();
-    const finalName = category === 'adult' ? applicantName.trim() : (studentName.trim() || applicantName.trim());
+    const finalStudentName = category === 'adult' 
+      ? applicantName.trim() 
+      : category === 'ged'
+      ? (studentName.trim() || applicantName.trim())
+      : studentName.trim();
+    const finalName = category === 'adult' 
+      ? applicantName.trim() 
+      : (applicantName.trim() || studentName.trim());
     const finalRegion = region.trim() || currentUser?.region || '미지정';
     const chosenProgramsStr = selectedPrograms.join(', ');
-    const finalReason = `[빠른 상담 신청] 분류: ${category === 'student' ? '학생용' : category === 'adult' ? '성인용' : '캠프용'} | 거주지역: ${finalRegion} | 희망 프로그램: ${chosenProgramsStr} | 학년/연령대: ${grade} | 수강생: ${finalStudentName}`;
+    const categoryLabel = category === 'student' ? '학생용' : category === 'adult' ? '성인용' : category === 'ged' ? '검정고시' : '캠프용';
+    const finalReason = `[빠른 상담 신청] 분류: ${categoryLabel} | 거주지역: ${finalRegion} | 희망 프로그램: ${chosenProgramsStr} | 학년/과정: ${grade} | 수강생: ${finalStudentName}`;
 
     setIsSubmitting(true);
 
@@ -207,10 +242,10 @@ export default function MainVisual({
         {/* Left column text content */}
         <div className="lg:col-span-7 space-y-6 md:space-y-8 text-center lg:text-left flex flex-col items-center lg:items-start">
           <div className="flex flex-wrap sm:flex-nowrap items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:py-1 bg-blue-500/10 border border-blue-500/25 rounded-2xl sm:rounded-full text-blue-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider mx-auto lg:mx-0">
-            <span>Premium 1:1 English Lesson</span>
+            <span>100만 회원이 선택한 1:1 맞춤 교육</span>
             <span className="hidden sm:inline w-1.5 h-1.5 bg-orange-500 rounded-full" />
             <span className="sm:hidden text-blue-400/50">•</span>
-            <span>방문수업 & 화상수업</span>
+            <span>이웃 방문과외 & e화상코칭</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.3] sm:leading-[1.15] keep-all break-keep">
@@ -320,11 +355,11 @@ export default function MainVisual({
             </div>
 
             {/* Category Switcher Tabs */}
-            <div className="grid grid-cols-3 p-1 bg-slate-100 rounded-xl gap-1 border border-slate-200">
+            <div className="grid grid-cols-4 p-1 bg-slate-100 rounded-xl gap-1 border border-slate-200">
               <button
                 type="button"
                 onClick={() => setCategory('student')}
-                className={`py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                className={`py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
                   category === 'student'
                     ? 'bg-orange-500 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
@@ -335,7 +370,7 @@ export default function MainVisual({
               <button
                 type="button"
                 onClick={() => setCategory('adult')}
-                className={`py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                className={`py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
                   category === 'adult'
                     ? 'bg-orange-500 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
@@ -345,8 +380,19 @@ export default function MainVisual({
               </button>
               <button
                 type="button"
+                onClick={() => setCategory('ged')}
+                className={`py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                  category === 'ged'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm font-extrabold'
+                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                }`}
+              >
+                <span>🎓</span> 검정고시
+              </button>
+              <button
+                type="button"
                 onClick={() => setCategory('camp')}
-                className={`py-2 text-[11px] md:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                className={`py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
                   category === 'camp'
                     ? 'bg-orange-500 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
@@ -378,12 +424,12 @@ export default function MainVisual({
               {category !== 'student' && (
                 <div className="space-y-1">
                   <label className="block text-xs font-bold text-slate-700">
-                    {category === 'adult' ? '본인 성함' : '학부모 성함'} <span className="text-rose-500">*</span>
+                    {category === 'adult' ? '본인 성함' : category === 'ged' ? '신청자 성함 (본인/학부모)' : '학부모 성함'} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder={category === 'adult' ? '수강생 본인 성함을 적어주세요' : '학부모님 성함을 적어주세요'}
+                    placeholder={category === 'adult' ? '수강생 본인 성함을 적어주세요' : category === 'ged' ? '신청자(본인 또는 학부모) 성함' : '학부모님 성함을 적어주세요'}
                     value={applicantName}
                     onChange={(e) => setApplicantName(e.target.value)}
                     className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 bg-slate-50/50 text-slate-800 font-medium transition-colors"
@@ -394,7 +440,7 @@ export default function MainVisual({
               {/* Contact Number */}
               <div className="space-y-1">
                 <label className="block text-xs font-bold text-slate-700">
-                  {category === 'adult' ? '본인 연락처' : '학부모 연락처'} <span className="text-rose-500">*</span>
+                  {category === 'adult' ? '본인 연락처' : category === 'ged' ? '상담 연락처' : '학부모 연락처'} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="tel"
@@ -410,12 +456,12 @@ export default function MainVisual({
               {category !== 'adult' && (
                 <div className="space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                   <label className="block text-xs font-bold text-slate-700">
-                    {category === 'camp' ? '캠프 희망 학생이름' : '수강 받을 학생 이름'} <span className="text-rose-500">*</span>
+                    {category === 'camp' ? '캠프 희망 학생이름' : category === 'ged' ? '수강생 이름 (본인 수강 시 동일 기재)' : '수강 받을 학생 이름'} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
-                    required
-                    placeholder={category === 'camp' ? '캠프 참가 자녀 이름을 적어주세요' : '수강생(자녀) 이름을 적어주세요'}
+                    required={category === 'student' || category === 'camp'}
+                    placeholder={category === 'camp' ? '캠프 참가 자녀 이름을 적어주세요' : category === 'ged' ? '수강생 성함 (본인이면 동일하게 작성)' : '수강생(자녀) 이름을 적어주세요'}
                     value={studentName}
                     onChange={(e) => setStudentName(e.target.value)}
                     className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 bg-slate-50/50 text-slate-800 font-medium transition-colors"
@@ -445,7 +491,7 @@ export default function MainVisual({
               <div className="space-y-2.5">
                 <div className="space-y-1">
                   <label className="block text-xs font-bold text-slate-700">
-                    {category === 'student' ? '학년구분' : category === 'adult' ? '연령대' : '학년'} <span className="text-rose-500">*</span>
+                    {category === 'student' ? '학년구분' : category === 'adult' ? '연령대' : category === 'ged' ? '검정고시 희망 과정' : '학년'} <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={grade}
@@ -467,6 +513,15 @@ export default function MainVisual({
                         <option value="30대 직장인">30대 직장인</option>
                         <option value="40~50대">40~50대</option>
                         <option value="기타 연령대">기타 연령대</option>
+                      </>
+                    )}
+                    {category === 'ged' && (
+                      <>
+                        <option value="고졸 검정고시 (대입반)">고졸 검정고시 (대입반)</option>
+                        <option value="중졸 검정고시 (기초반)">중졸 검정고시 (기초반)</option>
+                        <option value="초졸 검정고시 (첫걸음)">초졸 검정고시 (첫걸음)</option>
+                        <option value="대입 수시/정시 입시 컨설팅">대입 수시/정시 입시 컨설팅</option>
+                        <option value="검정고시 전과목 고득점 단기완성">검정고시 전과목 고득점 단기완성</option>
                       </>
                     )}
                     {category === 'camp' && (

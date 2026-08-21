@@ -47,13 +47,16 @@ export default function CourseTypeComparison() {
                 <Home size={22} />
               </div>
               <div>
-                <h3 className="font-extrabold text-lg text-slate-900">방문 일대일 과외</h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">선생님이 가정으로 직접 찾아가는 감각 집중</p>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-extrabold text-lg text-slate-900">1:1 이웃 방문과외</h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-600 text-white">우리동네 밀착</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">내 방 책상으로 찾아오는 대면 집중 & 공부 습관 케어</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              선생님과 한 책상에 앉아 눈을 마주치며 호흡하는 정통 과외입니다. 숙제 검사, 노트 정리 및 멘토십 정서 교류에 아주 유용하여 유아와 초중고 교과에 단단하게 사랑받고 있습니다.
+              우리 동네 학교(초·중·고) 최근 시험 족보와 학군 특성을 꿰뚫고 있는 이웃 전문 교사가 직접 방문합니다. 선생님과 한 책상에서 눈을 마주치며 호흡하는 정통 과외로, 숙제 검사, 오답 필기 첨삭 및 멘토십 정서 교류에 탁월합니다.
             </p>
 
             <div className="space-y-3 pt-2">
@@ -78,13 +81,16 @@ export default function CourseTypeComparison() {
                 <Laptop size={22} />
               </div>
               <div>
-                <h3 className="font-extrabold text-lg text-slate-900">화상 일대일 과외</h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">최첨단 화상 솔루션을 활용한 고효율 스마트 대화</p>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-extrabold text-lg text-slate-900">1:1 e화상 라이브 코칭</h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-600 text-white">전국 1타 매칭</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-0.5">최첨단 전자칠판 & 녹화 복습 지원 스마트 1:1 수업</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              시간과 공간의 제약 없이 검증된 전국 탑클래스 선생님과 함께하는 최고 효율의 1:1 온라인 맞춤 수업입니다. 학부모와 학생 모두가 깊이 만족하는 차별화된 핵심 혜택을 전해드립니다.
+              시간과 장소의 구애 없이 서울 대치·목동 출신 전국 탑클래스 선생님과 1:1 실시간 화면 공유 및 스마트 전자칠판으로 소통합니다. 질문 즉시 풀이, 수업 녹화본을 통한 무한 복습, 성취도 리포트가 함께 제공되는 고효율 온라인 학습 솔루션입니다.
             </p>
 
             <div className="space-y-3 pt-2">

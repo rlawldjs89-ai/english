@@ -14,9 +14,11 @@ import Benefits from './components/Benefits';
 import Courses from './components/Courses';
 import ConversationCourse from './components/ConversationCourse';
 import ExamPreparation from './components/ExamPreparation';
+import GedCourse from './components/GedCourse';
 import CampStudyAbroad from './components/CampStudyAbroad';
 import CourseTypeComparison from './components/CourseTypeComparison';
 import TeacherMatching from './components/TeacherMatching';
+import InterviewSection from './components/InterviewSection';
 import TrialInfo from './components/TrialInfo';
 import ReviewsSection from './components/ReviewsSection';
 import FaqSection from './components/FaqSection';
@@ -255,16 +257,22 @@ export default function App() {
             {/* SECTION 5. 교과 내신 및 인증시험 대비 */}
             <ExamPreparation onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 6. 해외 스쿨링 캠프 및 조기유학 컨설팅 */}
+            {/* SECTION 6. 초·중·고 검정고시 1:1 맞춤 코칭 & 대입 전략 */}
+            <GedCourse onNavigateToBooking={handleNavigateToBooking} />
+
+            {/* SECTION 7. 해외 스쿨링 캠프 및 조기유학 컨설팅 */}
             <CampStudyAbroad onNavigateToBooking={handleNavigateToBooking} />
 
             {/* SECTION 7. 방문수업과 화상수업 비교 */}
             <CourseTypeComparison />
 
-            {/* SECTION 7. 선생님 배정 과정 */}
+            {/* SECTION 8. 선생님 배정 과정 */}
             <TeacherMatching />
 
-            {/* SECTION 8. 무료 체험수업 안내 */}
+            {/* SECTION 9. 회원 & 코치 생생 인터뷰 영상 (상상코칭 / e상상코칭 / 이웃과외) */}
+            <InterviewSection onNavigateToBooking={handleNavigateToBooking} />
+
+            {/* SECTION 10. 무료 체험수업 안내 */}
             <TrialInfo onNavigateToBooking={handleNavigateToBooking} />
 
             {/* SECTION 9. 실제 수업 후기 */}

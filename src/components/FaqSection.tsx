@@ -7,7 +7,7 @@ export default function FaqSection() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null);
 
-  const categories = ['all', '체험수업', '수업방식', '수업료', '선생님', '대상별'];
+  const categories = ['all', '검정고시', '체험수업', '수업방식', '수업료', '선생님', '대상별'];
 
   const filteredFaqs = selectedCategory === 'all'
     ? faqs
