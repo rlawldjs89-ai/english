@@ -5,6 +5,12 @@ import { auth, subscribeConsultations, loginWithEmailOrAdmin } from '../lib/fire
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { mockTeachers } from '../data/teachers';
 import { 
+  getSavedNotificationEmail, 
+  saveNotificationEmail, 
+  sendTestEmailAlert, 
+  DEFAULT_NOTIFICATION_EMAIL 
+} from '../lib/emailNotifier';
+import { 
   Users, CheckCircle2, Clock, Eye, Edit3, Trash2, Search, Filter, 
   Download, Calendar, Plus, RefreshCw, Bookmark, Award, HelpCircle, FileSpreadsheet, MapPin,
   Shield, AlertCircle, Loader2, Bell, Send, Key, Smartphone, ExternalLink, X, Mail, Check, AlertTriangle
@@ -28,67 +34,24 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
 
   // Email real-time alert state
   const [isEmailModalOpen, setIsEmailModalOpen] = useState<boolean>(false);
-  const [emailConfig, setEmailConfig] = useState<{
-    recipientEmail: string;
-    smtpUser: string;
-    isConfigured: boolean;
-    isEnabled: boolean;
-  }>({
-    recipientEmail: 'deux102@naver.com',
-    smtpUser: 'deux102@naver.com',
-    isConfigured: false,
-    isEnabled: true,
-  });
-  const [inputSmtpPass, setInputSmtpPass] = useState<string>('');
-  const [inputRecipientEmail, setInputRecipientEmail] = useState<string>('deux102@naver.com');
+  const [recipientEmail, setRecipientEmail] = useState<string>(() => getSavedNotificationEmail());
+  const [inputEmail, setInputEmail] = useState<string>(() => getSavedNotificationEmail());
   const [isTestingEmail, setIsTestingEmail] = useState<boolean>(false);
-  const [emailTestResult, setEmailTestResult] = useState<{ success?: boolean; message?: string } | null>(null);
-  const [isSavingEmail, setIsSavingEmail] = useState<boolean>(false);
+  const [emailTestResult, setEmailTestResult] = useState<{ success?: boolean; message?: string; needsActivation?: boolean } | null>(null);
 
   const localUser = getCurrentUser();
   const isLocalAdmin = Boolean(localUser && (localUser.role === 'admin' || isAdminEmail(localUser.email)));
 
-  const loadEmailConfig = async () => {
-    try {
-      const res = await fetch('/api/email-config');
-      if (res.ok) {
-        const data = await res.json();
-        setEmailConfig(data);
-        if (data.recipientEmail) {
-          setInputRecipientEmail(data.recipientEmail);
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to load email config:', e);
-    }
-  };
-
-  useEffect(() => {
-    loadEmailConfig();
-  }, []);
-
-  const handleTestEmail = async () => {
+  const handleTestEmail = async (target?: string) => {
+    const emailToTest = target || inputEmail || recipientEmail;
     setIsTestingEmail(true);
     setEmailTestResult(null);
     try {
-      const res = await fetch('/api/notify-email/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          testEmail: inputRecipientEmail || emailConfig.recipientEmail,
-          testPass: inputSmtpPass || undefined,
-        }),
-      });
-      const resText = await res.text();
-      let data: any;
-      try {
-        data = JSON.parse(resText);
-      } catch {
-        throw new Error('서버가 준비 중입니다. 잠시 후 다시 [테스트 메일 즉시 발송]을 눌러주세요.');
-      }
-      setEmailTestResult(data);
-      if (data.success) {
-        loadEmailConfig();
+      const result = await sendTestEmailAlert(emailToTest);
+      setEmailTestResult(result);
+      if (result.success) {
+        saveNotificationEmail(emailToTest);
+        setRecipientEmail(emailToTest);
       }
     } catch (e: any) {
       setEmailTestResult({ success: false, message: e.message || '네트워크 통신 오류가 발생했습니다.' });
@@ -97,39 +60,16 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
     }
   };
 
-  const handleSaveEmailConfig = async (e: React.FormEvent) => {
+  const handleSaveEmailConfig = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSavingEmail(true);
-    try {
-      const res = await fetch('/api/email-config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recipientEmail: inputRecipientEmail,
-          smtpUser: inputRecipientEmail,
-          smtpPass: inputSmtpPass,
-          isEnabled: true,
-        }),
-      });
-      const resText = await res.text();
-      let data: any;
-      try {
-        data = JSON.parse(resText);
-      } catch {
-        throw new Error('서버 연결 중입니다. 잠시 후 다시 시도해 주세요.');
-      }
-      if (data.success) {
-        alert('✅ 네이버 메일(deux102@naver.com) 알림 설정이 안전하게 저장되었습니다!');
-        loadEmailConfig();
-        setInputSmtpPass('');
-      } else {
-        alert(`저장 실패: ${data.error || '오류가 발생했습니다.'}`);
-      }
-    } catch (e: any) {
-      alert(`저장 중 오류: ${e.message}`);
-    } finally {
-      setIsSavingEmail(false);
+    if (!inputEmail || !inputEmail.includes('@')) {
+      alert('유효한 이메일 주소를 입력해 주세요.');
+      return;
     }
+    saveNotificationEmail(inputEmail);
+    setRecipientEmail(inputEmail);
+    alert(`✅ 알림 수신 이메일이 [${inputEmail}]로 설정되었습니다!`);
+    handleTestEmail(inputEmail);
   };
 
   // Firebase Auth listener
@@ -529,8 +469,8 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
             title="네이버 메일(deux102@naver.com) 실시간 알림 연동"
           >
             <Mail size={15} />
-            <span>이메일 알림 (deux102@naver.com)</span>
-            <span className={`w-2 h-2 rounded-full ${emailConfig.isConfigured ? 'bg-white' : 'bg-amber-300'}`} />
+            <span>이메일 알림 ({recipientEmail})</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
           </button>
 
           <button
@@ -559,18 +499,18 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-emerald-400">네이버 메일 실시간 알림 시스템</span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                수신처: {emailConfig.recipientEmail || 'deux102@naver.com'}
+                수신처: {recipientEmail}
               </span>
             </div>
             <p className="text-xs text-slate-300">
-              학부모/학생의 무료 상담 신청이 접수되면 <strong>{emailConfig.recipientEmail || 'deux102@naver.com'}</strong> 메일함으로 신청자 정보가 즉시 자동 발송됩니다.
+              학부모/학생의 무료 상담 신청이 접수되면 <strong>{recipientEmail}</strong> 메일함으로 신청서 상세 내역이 즉시 자동 전송됩니다.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           <button
-            onClick={handleTestEmail}
+            onClick={() => handleTestEmail()}
             disabled={isTestingEmail}
             className="flex-1 sm:flex-initial px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
@@ -581,7 +521,7 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
             onClick={() => setIsEmailModalOpen(true)}
             className="flex-1 sm:flex-initial px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
           >
-            <span>연동 설정</span>
+            <span>연동 설정 / 확인</span>
           </button>
         </div>
       </div>
@@ -1074,11 +1014,11 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
                   <span className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-400/30">
                     <Mail size={16} />
                   </span>
-                  <span className="text-xs font-bold text-emerald-300">네이버 메일 (deux102@naver.com) 연동</span>
+                  <span className="text-xs font-bold text-emerald-300">네이버 메일 실시간 알림 연동</span>
                 </div>
-                <h3 className="text-lg font-bold">📧 실시간 상담 접수 이메일 알림</h3>
+                <h3 className="text-lg font-bold">📧 신규 무료 상담 신청 실시간 알림</h3>
                 <p className="text-xs text-slate-300">
-                  신규 무료 상담 신청이 접수되는 즉시 관리자 네이버 메일함으로 알림을 자동 발송합니다.
+                  학부모 및 학생이 웹사이트에서 상담을 신청하는 즉시 관리자 네이버 메일함으로 자동 전송됩니다.
                 </p>
               </div>
               <button
@@ -1092,38 +1032,32 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-5 text-slate-700">
               {/* Status Alert Banner */}
-              <div className={`p-4 rounded-2xl border text-xs leading-relaxed flex items-start gap-3 ${
-                emailConfig.isConfigured
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                  : 'bg-blue-50 border-blue-200 text-blue-900'
-              }`}>
-                <Bell size={18} className={`shrink-0 mt-0.5 ${emailConfig.isConfigured ? 'text-emerald-600' : 'text-blue-600'}`} />
+              <div className="p-4 rounded-2xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs leading-relaxed flex items-start gap-3">
+                <CheckCircle2 size={18} className="shrink-0 mt-0.5 text-emerald-600" />
                 <div>
                   <p className="font-bold">
-                    현재 수신 이메일: <span className="font-mono underline">{inputRecipientEmail || emailConfig.recipientEmail || 'deux102@naver.com'}</span>
+                    현재 알림 수신 이메일: <span className="font-mono underline font-extrabold">{recipientEmail}</span>
                   </p>
-                  <p className="text-[11px] mt-0.5 opacity-90">
-                    {emailConfig.isConfigured
-                      ? '🟢 네이버 메일 SMTP 연동이 완료되어 실시간 알림을 수신할 준비가 되었습니다.'
-                      : '아래 가이드에 따라 네이버 메일 SMTP 비밀번호(또는 앱 비밀번호)를 설정하시면 즉시 연동됩니다.'}
+                  <p className="text-[11px] mt-1 text-emerald-800 leading-relaxed">
+                    ✨ 비밀번호를 입력할 필요 없이, 아래 <strong>[🧪 테스트 메일 즉시 발송]</strong> 버튼을 누르시면 네이버 메일함으로 확인 메일이 발송됩니다.
                   </p>
                 </div>
               </div>
 
-              {/* Step-by-Step Guide for Naver Mail */}
+              {/* Step-by-Step Guide */}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 text-xs text-slate-600">
                 <p className="font-bold text-slate-800 flex items-center gap-1.5">
-                  <span>💡</span> 네이버 메일 SMTP 설정 1분 가이드
+                  <span>💡</span> 최초 1회 연동 완료 방법 (딱 10초 소요)
                 </p>
                 <ol className="list-decimal pl-4 space-y-1.5 text-[11px] leading-relaxed">
                   <li>
-                    <strong>네이버 메일(mail.naver.com)</strong> 접속 후 좌측 하단 <strong>환경설정(⚙️)</strong> 클릭
+                    아래 <strong>[🧪 테스트 메일 즉시 발송]</strong> 버튼을 클릭합니다.
                   </li>
                   <li>
-                    상단 <strong>[POP3/IMAP 설정]</strong> 탭 클릭 ➔ <strong>[IMAP/SMTP 설정]</strong>에서 <code className="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold">IMAP/SMTP 사용 : 사용함</code> 선택 후 저장
+                    <strong>네이버 메일(<a href="https://mail.naver.com" target="_blank" rel="noreferrer" className="text-emerald-700 font-bold underline">mail.naver.com</a>)</strong>에 로그인하여 메일함을 확인합니다.
                   </li>
                   <li>
-                    네이버 2단계 인증을 사용하시는 경우, <strong>[네이버 내정보 ➔ 보안설정 ➔ 2단계 인증 ➔ 애플리케이션 비밀번호 생성]</strong>에서 생성된 영문 비밀번호를 아래 입력란에 넣으시면 가장 안전합니다.
+                    FormSubmit에서 도착한 확인 메일 속 <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">Activate Form (활성화)</span> 파란색 버튼을 딱 1번만 클릭하시면 연동이 영구 완료됩니다!
                   </li>
                 </ol>
               </div>
@@ -1132,56 +1066,48 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
               <form onSubmit={handleSaveEmailConfig} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-800 mb-1">
-                    알림 수신 이메일 주소
+                    알림 수신 이메일 주소 변경
                   </label>
                   <div className="relative">
                     <input
                       type="email"
-                      value={inputRecipientEmail}
-                      onChange={(e) => setInputRecipientEmail(e.target.value)}
+                      value={inputEmail}
+                      onChange={(e) => setInputEmail(e.target.value)}
                       placeholder="deux102@naver.com"
                       className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-hidden font-mono"
                       required
                     />
                     <Mail size={15} className="absolute left-3 top-3 text-slate-400" />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
-                    <span>네이버 메일 SMTP 비밀번호 (또는 애플리케이션 비밀번호)</span>
-                    {emailConfig.isConfigured && (
-                      <span className="text-[10px] text-emerald-600 font-bold">✓ 이미 저장됨 (변경 시에만 입력)</span>
-                    )}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      value={inputSmtpPass}
-                      onChange={(e) => setInputSmtpPass(e.target.value)}
-                      placeholder={emailConfig.isConfigured ? '•••••••••••• (새 비밀번호 설정 시 입력)' : '네이버 비밀번호 또는 앱 비밀번호'}
-                      className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-hidden font-mono"
-                    />
-                    <Key size={15} className="absolute left-3 top-3 text-slate-400" />
-                  </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    * SMTP 서버: <code className="text-slate-600 font-mono">smtp.naver.com (포트 465 SSL)</code>
+                    * 기본 수신 주소: <code className="text-slate-600 font-mono">deux102@naver.com</code>
                   </p>
                 </div>
 
                 {/* Test Result Message */}
                 {emailTestResult && (
-                  <div className={`p-3.5 rounded-xl border text-xs font-medium animate-in fade-in duration-200 ${
+                  <div className={`p-4 rounded-xl border text-xs font-medium animate-in fade-in duration-200 ${
                     emailTestResult.success
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
                       : 'bg-rose-50 border-rose-200 text-rose-900'
                   }`}>
                     <p className="font-bold flex items-center gap-1.5">
-                      {emailTestResult.success ? '✅ 테스트 메일 발송 성공' : '❌ 발송 테스트 실패'}
+                      {emailTestResult.success ? '✅ 메일 전송 성공' : '❌ 발송 실패'}
                     </p>
                     <p className="mt-1 text-[11px] leading-relaxed">
                       {emailTestResult.message}
                     </p>
+                    {emailTestResult.success && (
+                      <a
+                        href="https://mail.naver.com"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 mt-2 text-xs font-bold text-emerald-700 hover:text-emerald-800 underline"
+                      >
+                        <span>네이버 메일함 바로가기 (mail.naver.com)</span>
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
                   </div>
                 )}
 
@@ -1189,14 +1115,14 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
                 <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={handleTestEmail}
+                    onClick={() => handleTestEmail()}
                     disabled={isTestingEmail}
-                    className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
                   >
                     {isTestingEmail ? (
                       <>
                         <Loader2 size={14} className="animate-spin" />
-                        테스트 메일 전송 중...
+                        메일 전송 중...
                       </>
                     ) : (
                       <>
@@ -1208,10 +1134,9 @@ export default function AdminDashboard({ bookings: propBookings, onBookingsChang
 
                   <button
                     type="submit"
-                    disabled={isSavingEmail}
-                    className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
+                    className="py-3 px-5 bg-slate-800 hover:bg-slate-750 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    {isSavingEmail ? '저장 중...' : '설정 정보 저장'}
+                    <span>이메일 주소 저장</span>
                   </button>
                 </div>
               </form>

@@ -5,6 +5,7 @@ import {
   subscribeBookings as subscribeFirestoreBookings, 
   seedBookingsIfEmpty 
 } from './firebase';
+import { sendConsultationEmailAlert } from './emailNotifier';
 
 export { subscribeFirestoreBookings as subscribeBookings };
 
@@ -231,6 +232,11 @@ export function saveBookings(bookings: Booking[]): void {
 export async function addBookingOnServer(booking: Booking): Promise<Booking[]> {
   // Sync to Firestore immediately
   saveBookingToFirestore(booking).catch(console.error);
+
+  // Send instant real-time email notification directly to manager (deux102@naver.com)
+  sendConsultationEmailAlert(booking).catch((err) => {
+    console.warn('Real-time email alert dispatch skipped/failed:', err);
+  });
 
   // Save locally first
   const current = getBookings();
