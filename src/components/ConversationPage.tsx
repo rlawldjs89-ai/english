@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Video, Check, Sparkles, Globe, MessageSquare, BookOpen, Award, Target, 
   ArrowLeft, ChevronRight, Phone, Send, CheckCircle2, Star, Clock, Shield,
@@ -35,6 +35,14 @@ export default function ConversationPage({
   const [formGoals, setFormGoals] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = "PL 외국어 회화 전용센터 (영어·중국어·일본어 1:1 화상과외) | 온리원 스터디";
+    return () => {
+      document.title = originalTitle;
+    };
+  }, []);
 
   // Korea Course Data (korea.asp)
   const koreaData = {

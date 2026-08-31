@@ -33,7 +33,45 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation'>(() => {
+  // Parse view from URL path/hash/search or localStorage
+  const getViewFromUrlOrStorage = (): 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation' => {
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+
+      // Priority 1: Check URL Pathname / Query / Hash for dedicated landing pages (e.g. /power for conversation ads)
+      if (
+        pathname === '/power' || 
+        pathname.startsWith('/power/') || 
+        pathname === '/conversation' || 
+        pathname.startsWith('/conversation/') ||
+        pathname === '/speaking' ||
+        pathname === '/lang' ||
+        hash === '#power' ||
+        hash === '#conversation' ||
+        search.includes('power') ||
+        search.includes('conversation')
+      ) {
+        return 'conversation';
+      }
+      if (pathname === '/booking' || pathname === '/apply' || hash === '#booking') {
+        return 'booking';
+      }
+      if (pathname === '/teachers' || hash === '#teachers') {
+        return 'teachers';
+      }
+      if (pathname === '/admin' || hash === '#admin') {
+        const currentUser = getCurrentUser();
+        const isAdmin = Boolean(currentUser && (currentUser.role === 'admin' || isAdminEmail(currentUser.email)));
+        return isAdmin ? 'admin' : 'home';
+      }
+      if (pathname === '/mypage' || hash === '#mypage') {
+        const currentUser = getCurrentUser();
+        return currentUser ? 'mypage' : 'home';
+      }
+    }
+
     const savedView = localStorage.getItem('active_view_v1');
     const currentUser = getCurrentUser();
     const isAdmin = Boolean(currentUser && (currentUser.role === 'admin' || isAdminEmail(currentUser.email)));
@@ -47,7 +85,9 @@ export default function App() {
       return savedView as 'home' | 'booking' | 'teachers' | 'conversation';
     }
     return 'home';
-  });
+  };
+
+  const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation'>(getViewFromUrlOrStorage);
 
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -73,7 +113,35 @@ export default function App() {
     setActiveView(view);
     localStorage.setItem('active_view_v1', view);
     syncBookingsFromServer(); // Fetch latest entries immediately on view switch
+
+    // Sync browser URL path
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      let targetPath = '/';
+      if (view === 'conversation') targetPath = '/power';
+      else if (view === 'booking') targetPath = '/booking';
+      else if (view === 'teachers') targetPath = '/teachers';
+      else if (view === 'admin') targetPath = '/admin';
+      else if (view === 'mypage') targetPath = '/mypage';
+
+      if (currentPath !== targetPath) {
+        window.history.pushState({ view }, '', targetPath);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
+
+  // Listen to browser Back/Forward buttons (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const newView = getViewFromUrlOrStorage();
+      setActiveView(newView);
+      localStorage.setItem('active_view_v1', newView);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     const loadedUser = getCurrentUser();
