@@ -3,9 +3,9 @@ import { User, isAdminEmail } from '../types';
 import { Menu, X, User as UserIcon, LogOut, GraduationCap, ChevronRight } from 'lucide-react';
 
 interface HeaderProps {
-  activeView: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers';
+  activeView: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation';
   currentUser: User | null;
-  onNavigate: (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers') => void;
+  onNavigate: (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation') => void;
   onScrollToSection: (id: string) => void;
   onOpenLogin: () => void;
   onLogout: () => void;
@@ -24,21 +24,30 @@ export default function Header({
   const isAdmin = Boolean(currentUser && (currentUser.role === 'admin' || isAdminEmail(currentUser.email)));
 
   const menuItems = [
-    { label: '과목별 수업 소개', sectionId: 'brand-section' },
-    { label: '교과·회화 과정', sectionId: 'courses-section' },
-    { label: '회화 화상과정', sectionId: 'conversation-section' },
-    { label: '내신·수능/어학대비', sectionId: 'exams-section' },
+    { label: '과목별 수업', sectionId: 'brand-section' },
+    { label: '교과 과정', sectionId: 'courses-section' },
+    { 
+      label: '🗣️ 제2외국어·회화·인증시험', 
+      isPageLink: true, 
+      view: 'conversation' as const, 
+      isSpecial: true 
+    },
+    { label: '내신·수능 대비', sectionId: 'exams-section' },
     { label: '🎓 검정고시', sectionId: 'ged-section', isHighlight: true },
     { label: '✈️ 해외캠프·유학', sectionId: 'camp-section' },
     { label: '수업 방식', sectionId: 'comparison-section' },
     { label: '선생님 배정', sectionId: 'matching-section' },
-    { label: '🎬 생생 인터뷰', sectionId: 'interview-section' },
+    { label: '🎬 인터뷰', sectionId: 'interview-section' },
     { label: '수업 후기', sectionId: 'reviews-section' }
   ];
 
-  const handleMenuItemClick = (sectionId: string) => {
+  const handleMenuItemClick = (item: typeof menuItems[0]) => {
     setIsMenuOpen(false);
-    onScrollToSection(sectionId);
+    if (item.isPageLink && item.view) {
+      onNavigate(item.view);
+    } else if (item.sectionId) {
+      onScrollToSection(item.sectionId);
+    }
   };
 
   return (
@@ -62,19 +71,23 @@ export default function Header({
         </button>
 
         {/* Desktop Menu navigation */}
-        <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs font-bold text-slate-600">
+        <nav className="hidden lg:flex items-center gap-4 xl:gap-6 text-xs font-bold text-slate-600">
           {menuItems.map((item, idx) => (
             <button
               key={idx}
-              onClick={() => handleMenuItemClick(item.sectionId)}
+              onClick={() => handleMenuItemClick(item)}
               className={`cursor-pointer transition-all py-1.5 relative group ${
-                item.isHighlight 
-                  ? 'px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-xs hover:shadow-md hover:scale-105 font-black' 
-                  : 'hover:text-blue-900'
+                item.isSpecial
+                  ? activeView === 'conversation'
+                    ? 'px-3 py-1.5 bg-blue-900 text-white rounded-xl shadow-md font-black ring-2 ring-blue-700'
+                    : 'px-3 py-1.5 bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100 rounded-xl shadow-xs font-extrabold hover:scale-105'
+                  : item.isHighlight 
+                    ? 'px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-xs hover:shadow-md hover:scale-105 font-black' 
+                    : 'hover:text-blue-900'
               }`}
             >
               {item.label}
-              {!item.isHighlight && (
+              {!item.isHighlight && !item.isSpecial && (
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-900 transition-all group-hover:w-full" />
               )}
             </button>
@@ -158,15 +171,19 @@ export default function Header({
             {menuItems.map((item, idx) => (
               <button
                 key={idx}
-                onClick={() => handleMenuItemClick(item.sectionId)}
+                onClick={() => handleMenuItemClick(item)}
                 className={`p-3 rounded-xl font-bold flex items-center justify-between transition-all ${
-                  item.isHighlight 
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white col-span-2 shadow-sm font-black' 
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
+                  item.isSpecial
+                    ? activeView === 'conversation'
+                      ? 'bg-blue-900 text-white col-span-2 shadow-sm font-black ring-2 ring-blue-700'
+                      : 'bg-blue-50 text-blue-900 border border-blue-200 col-span-2 font-extrabold'
+                    : item.isHighlight 
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white col-span-2 shadow-sm font-black' 
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
                 }`}
               >
                 <span>{item.label}</span>
-                <ChevronRight size={12} className={item.isHighlight ? 'text-white' : 'text-slate-400'} />
+                <ChevronRight size={12} className={item.isHighlight || (item.isSpecial && activeView === 'conversation') ? 'text-white' : 'text-slate-400'} />
               </button>
             ))}
           </div>

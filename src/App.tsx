@@ -26,13 +26,14 @@ import BrandIntro from './components/BrandIntro';
 import Mypage from './components/Mypage';
 import AdminDashboard from './components/AdminDashboard';
 import AuthModal from './components/AuthModal';
+import ConversationPage from './components/ConversationPage';
 
 import { 
   Phone, MessageSquare, Calendar, Shield, X, User as UserIcon, Check, Sparkles, BookOpen, AlertCircle
 } from 'lucide-react';
 
 export default function App() {
-  const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers'>(() => {
+  const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation'>(() => {
     const savedView = localStorage.getItem('active_view_v1');
     const currentUser = getCurrentUser();
     const isAdmin = Boolean(currentUser && (currentUser.role === 'admin' || isAdminEmail(currentUser.email)));
@@ -42,8 +43,8 @@ export default function App() {
     if (savedView === 'mypage') {
       return currentUser ? 'mypage' : 'home';
     }
-    if (savedView && ['home', 'booking', 'teachers'].includes(savedView)) {
-      return savedView as 'home' | 'booking' | 'teachers';
+    if (savedView && ['home', 'booking', 'teachers', 'conversation'].includes(savedView)) {
+      return savedView as 'home' | 'booking' | 'teachers' | 'conversation';
     }
     return 'home';
   });
@@ -68,7 +69,7 @@ export default function App() {
     }
   };
 
-  const changeView = (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers') => {
+  const changeView = (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation') => {
     setActiveView(view);
     localStorage.setItem('active_view_v1', view);
     syncBookingsFromServer(); // Fetch latest entries immediately on view switch
@@ -252,7 +253,10 @@ export default function App() {
             <Courses onNavigateToBooking={handleNavigateToBooking} />
 
             {/* SECTION 4. 영어 회화수업 */}
-            <ConversationCourse onNavigateToBooking={handleNavigateToBooking} />
+            <ConversationCourse 
+              onNavigateToBooking={handleNavigateToBooking} 
+              onNavigateToConversationPage={() => changeView('conversation')}
+            />
 
             {/* SECTION 5. 교과 내신 및 인증시험 대비 */}
             <ExamPreparation onNavigateToBooking={handleNavigateToBooking} />
@@ -286,6 +290,18 @@ export default function App() {
 
 
           </div>
+        )}
+
+        {activeView === 'conversation' && (
+          <ConversationPage
+            onBackToHome={() => changeView('home')}
+            currentUser={user}
+            onBookingSuccess={(updatedList) => {
+              const updated = updatedList || getBookings();
+              setBookings(updated);
+              setBookingCount(updated.length);
+            }}
+          />
         )}
 
         {activeView === 'mypage' && (

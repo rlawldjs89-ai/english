@@ -2,9 +2,13 @@ import { Video, Check, Sparkles, Globe, MessageSquare, BookOpen } from 'lucide-r
 
 interface ConversationCourseProps {
   onNavigateToBooking: () => void;
+  onNavigateToConversationPage?: () => void;
 }
 
-export default function ConversationCourse({ onNavigateToBooking }: ConversationCourseProps) {
+export default function ConversationCourse({ 
+  onNavigateToBooking, 
+  onNavigateToConversationPage 
+}: ConversationCourseProps) {
   const languageTracks = [
     {
       lang: '영어 회화',
@@ -139,7 +143,7 @@ export default function ConversationCourse({ onNavigateToBooking }: Conversation
                 ))}
               </div>
 
-              <div className="pt-4 border-t border-slate-800 space-y-3">
+              <div className="pt-4 border-t border-slate-800 space-y-2.5">
                 <p className="text-[11px] text-slate-400 text-center">
                   ※ 회화 수업(영어/일본어/중국어)은 화상 프로그램 및 온라인 전자칠판을 통해 최적화 진행됩니다.
                 </p>
@@ -149,6 +153,15 @@ export default function ConversationCourse({ onNavigateToBooking }: Conversation
                 >
                   1:1 회화 상담 및 시범 화상수업 신청
                 </button>
+                {onNavigateToConversationPage && (
+                  <button
+                    onClick={onNavigateToConversationPage}
+                    className="w-full py-2.5 bg-blue-600/30 hover:bg-blue-600/50 text-sky-200 border border-sky-400/30 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>🗣️ 회화·제2외국어 전용관 페이지 이동</span>
+                    <Globe size={13} />
+                  </button>
+                )}
               </div>
             </div>
           </div>
