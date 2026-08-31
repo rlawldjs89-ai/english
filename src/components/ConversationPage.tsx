@@ -38,7 +38,7 @@ export default function ConversationPage({
 
   useEffect(() => {
     const originalTitle = document.title;
-    document.title = "PL 외국어 회화 전용센터 (영어·중국어·일본어 1:1 화상과외) | 온리원 스터디";
+    document.title = "외국어 회화 전용센터 (영어·중국어·일본어 1:1 화상과외) | 온리원 스터디";
     return () => {
       document.title = originalTitle;
     };
@@ -152,7 +152,7 @@ export default function ConversationPage({
         gradeOrJob: formGradeOrJob.trim() || '회화 수강생',
         region: '전국 (온라인 화상/전화)',
         currentLevel: formLevel,
-        selectedCourse: `[PL 회화센터] ${formLanguage} (${formClassMethod})`,
+        selectedCourse: `[외국어 회화] ${formLanguage} (${formClassMethod})`,
         classType: '화상수업',
         preferredDate: new Date().toISOString().split('T')[0],
         preferredTimeSlot: formTimeSlot,
@@ -196,7 +196,7 @@ export default function ConversationPage({
             </button>
             <span className="text-slate-300">/</span>
             <span className="font-extrabold text-blue-950 flex items-center gap-1">
-              <Globe size={13} className="text-blue-700" /> PL 외국어 회화센터 (KOREA · USA · CHINA · JAPAN)
+              <Globe size={13} className="text-blue-700" /> 외국어 회화센터 (KOREA · USA · CHINA · JAPAN)
             </span>
           </div>
 
@@ -214,7 +214,7 @@ export default function ConversationPage({
         <div className="max-w-7xl mx-auto px-4 text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/20 text-sky-300 text-xs font-black rounded-full border border-sky-400/30">
             <Video size={14} />
-            <span>PL 외국어 회화 러닝센터 · 1:1 맞춤형 화상/전화 전문 교육</span>
+            <span>외국어 회화 러닝센터 · 1:1 맞춤형 화상/전화 전문 교육</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight keep-all break-keep">
@@ -557,7 +557,7 @@ export default function ConversationPage({
             
             <div className="text-center space-y-2 border-b border-slate-100 pb-6">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-100 text-orange-800 text-xs font-bold rounded-full">
-                <Sparkles size={14} /> PL 외국어 회화 1:1 맞춤 상담 & 무료 레벨테스트
+                <Sparkles size={14} /> 외국어 회화 1:1 맞춤 상담 & 무료 레벨테스트
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
                 1:1 회화 무료 레벨진단 & 시범수업 신청
