@@ -49,15 +49,64 @@ export default function ConversationCourse({
     { title: '100% 화상 수업 전용 운영', desc: '회화는 장소 이동 부담 없이 오직 스피킹과 듣기에만 집중할 수 있도록 고화질 화상수업으로 꼼꼼히 진행됩니다.' },
     { title: '학습자 1:1 맞춤형 대화 주제', desc: '실생활 롤플레잉, 현지 뉴스 트렌드, 관심 취미 등 흥미 위주의 시나리오 교재를 활용합니다.' },
     { title: '수강생 말하기 비율 70% 보장', desc: '선생님 혼자 일방적으로 설명하는 강의가 아닌, 수강생이 끊임없이 직접 문장을 말하도록 유도합니다.' },
-    { title: '실시간 정교한 오류 클리닉', desc: '스피킹 도중 어색한 표현이나 발음, 뉘앙스를 선생님이 친절하게 실시간 피드백으로 교정해 드립니다.' }
+    { title: '실시간 정교한 피드백', desc: '스피킹 도중 어색한 표현이나 발음, 뉘앙스를 선생님이 친절하게 실시간 피드백으로 교정해 드립니다.' }
   ];
 
   return (
     <section id="conversation-section" className="py-16 md:py-24 bg-white border-b border-slate-50">
       <div className="max-w-7xl mx-auto px-4 space-y-12">
         
+        {/* Top: Guarantees & Callout block (회화 수업 만의 엄격한 4대 원칙) */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-slate-900 text-white rounded-3xl p-6 md:p-8 space-y-6 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl" />
+            
+            <div className="flex items-center gap-2">
+              <Sparkles className="text-sky-400" size={18} />
+              <h3 className="text-sm md:text-base font-bold text-sky-400">회화 수업 만의 엄격한 4대 원칙</h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {conversationGuarantees.map((item, idx) => (
+                <div key={idx} className="space-y-1 relative z-10 text-left bg-slate-800/60 p-3.5 rounded-2xl border border-slate-700/50">
+                  <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-sky-400 rounded-full shrink-0" />
+                    {item.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-400 leading-normal pl-3">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-4 border-t border-slate-800 space-y-2.5">
+              <p className="text-[11px] text-slate-400 text-center">
+                ※ 회화 수업(영어/일본어/중국어)은 화상 프로그램 및 온라인 전자칠판을 통해 최적화 진행됩니다.
+              </p>
+              <div className="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-3">
+                {onNavigateToConversationPage && (
+                  <button
+                    onClick={onNavigateToConversationPage}
+                    className="w-full py-3 bg-blue-600/30 hover:bg-blue-600/50 text-sky-200 border border-sky-400/30 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>🗣️ 회화·제2외국어 전용관 페이지 이동</span>
+                    <Globe size={13} />
+                  </button>
+                )}
+                <button
+                  onClick={onNavigateToBooking}
+                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer"
+                >
+                  1:1 회화 상담 및 시범 화상수업 신청
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Centered Title block */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
+        <div className="text-center max-w-3xl mx-auto space-y-4 pt-4">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-100 text-sky-800 text-xs font-bold rounded-full mx-auto">
             <Video size={14} /> 외국어 회화 화상 전용 과정
           </div>
@@ -92,78 +141,27 @@ export default function ConversationCourse({
           ))}
         </div>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch pt-4">
-          
-          {/* Left Side: Rich text info */}
-          <div className="lg:col-span-7 space-y-6 md:space-y-8 text-center lg:text-left flex flex-col justify-between">
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-800 text-center lg:text-left">
-                이런 분들께 1:1 회화 화상 과외를 적극 추천합니다:
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600 text-left">
-                {conversationTargets.map((target, idx) => (
-                  <div key={idx} className="flex items-start gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100/50">
-                    <Check size={14} className="text-sky-500 shrink-0 mt-0.5" />
-                    <span className="keep-all break-keep">{target}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-4 bg-blue-50 border-l-4 border-blue-900 rounded-r-xl text-center lg:text-left">
-              <p className="text-xs text-blue-900 leading-relaxed font-semibold keep-all break-keep">
-                “외국어를 이미 완벽하게 잘해야 시작하는 수업이 절대 아닙니다.<br />
-                지금 말할 수 있는 아주 단순한 단어 수준에서 한 문장씩 당당하게 시작하면 충분합니다.”
-              </p>
+        {/* Target Audience & Quote Section */}
+        <div className="max-w-4xl mx-auto space-y-6 text-center">
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-slate-800 text-center">
+              이런 분들께 1:1 회화 화상 과외를 적극 추천합니다
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600 text-left">
+              {conversationTargets.map((target, idx) => (
+                <div key={idx} className="flex items-start gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100/80">
+                  <Check size={14} className="text-sky-500 shrink-0 mt-0.5" />
+                  <span className="keep-all break-keep">{target}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right Side: Guarantees & Callout block */}
-          <div className="lg:col-span-5">
-            <div className="bg-slate-900 text-white rounded-3xl p-6 md:p-8 space-y-6 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl" />
-              
-              <div className="flex items-center gap-2">
-                <Sparkles className="text-sky-400" size={18} />
-                <h3 className="text-sm font-bold text-sky-400">회화 수업 만의 엄격한 4대 원칙</h3>
-              </div>
-
-              <div className="space-y-5">
-                {conversationGuarantees.map((item, idx) => (
-                  <div key={idx} className="space-y-1 relative z-10 text-left">
-                    <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                      <span className="w-1 h-1 bg-sky-400 rounded-full" />
-                      {item.title}
-                    </h4>
-                    <p className="text-[11px] text-slate-400 leading-normal pl-2.5">
-                      {item.desc}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t border-slate-800 space-y-2.5">
-                <p className="text-[11px] text-slate-400 text-center">
-                  ※ 회화 수업(영어/일본어/중국어)은 화상 프로그램 및 온라인 전자칠판을 통해 최적화 진행됩니다.
-                </p>
-                <button
-                  onClick={onNavigateToBooking}
-                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer"
-                >
-                  1:1 회화 상담 및 시범 화상수업 신청
-                </button>
-                {onNavigateToConversationPage && (
-                  <button
-                    onClick={onNavigateToConversationPage}
-                    className="w-full py-2.5 bg-blue-600/30 hover:bg-blue-600/50 text-sky-200 border border-sky-400/30 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>🗣️ 회화·제2외국어 전용관 페이지 이동</span>
-                    <Globe size={13} />
-                  </button>
-                )}
-              </div>
-            </div>
+          <div className="p-4 bg-blue-50 border-l-4 border-blue-900 rounded-r-xl text-center">
+            <p className="text-xs text-blue-900 leading-relaxed font-semibold keep-all break-keep">
+              “외국어를 이미 완벽하게 잘해야 시작하는 수업이 절대 아닙니다.<br />
+              지금 말할 수 있는 아주 단순한 단어 수준에서 한 문장씩 당당하게 시작하면 충분합니다.”
+            </p>
           </div>
         </div>
 
