@@ -83,14 +83,10 @@ export default function MainVisual({
     }
   }, [category]);
 
-  // Auto-fill from current user when logged in
+  // Ensure contact always starts blank so applicants can enter their own number cleanly
   React.useEffect(() => {
-    if (currentUser) {
-      setApplicantName(currentUser.name || '');
-      setContact(currentUser.contact || '');
-      if (currentUser.region) setRegion(currentUser.region);
-    }
-  }, [currentUser]);
+    // Keep form fields clean for new consultation requests
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,13 +236,6 @@ export default function MainVisual({
       <div className="max-w-7xl mx-auto px-4 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         {/* Left column text content */}
         <div className="lg:col-span-7 space-y-6 md:space-y-8 text-center lg:text-left flex flex-col items-center lg:items-start">
-          <div className="flex flex-wrap sm:flex-nowrap items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-1.5 sm:py-1 bg-blue-500/10 border border-blue-500/25 rounded-2xl sm:rounded-full text-blue-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider mx-auto lg:mx-0">
-            <span>100만 회원이 선택한 1:1 맞춤 교육</span>
-            <span className="hidden sm:inline w-1.5 h-1.5 bg-orange-500 rounded-full" />
-            <span className="sm:hidden text-blue-400/50">•</span>
-            <span>이웃 방문과외 & e화상코칭</span>
-          </div>
-
           <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.3] sm:leading-[1.15] keep-all break-keep">
             일대일 수업이 필요한 모든 순간,<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-sky-200 to-orange-300">

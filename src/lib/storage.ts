@@ -18,7 +18,7 @@ export const DEFAULT_ADMIN: User = {
   email: 'admin@english.com',
   name: '최고관리자',
   role: 'admin',
-  contact: '010-8374-6543',
+  contact: '',
   createdAt: '2026-01-01T00:00:00Z',
 };
 
