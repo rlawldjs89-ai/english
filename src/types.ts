@@ -93,7 +93,7 @@ export interface Review {
 
 export interface FAQ {
   id: string;
-  category: '체험수업' | '수업방식' | '수업료' | '선생님' | '대상별' | '검정고시';
+  category: '체험수업' | '수업방식' | '수업료' | '선생님' | '대상별' | '검정고시' | '시험대비';
   question: string;
   answer: string;
 }

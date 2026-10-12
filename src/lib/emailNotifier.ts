@@ -47,7 +47,7 @@ export async function sendConsultationEmailAlert(
       '현재 학습 수준': booking.currentLevel || '상담 시 진단',
       '선생님 선호': booking.preferredTeacherGender || '무관',
       '신청 및 상담 사유': booking.reason || '상담 요청',
-      '학습 목표': booking.goals || '기초 및 성적 향상',
+      '희망 요청사항': booking.goals || '기초 및 성적 향상',
       '기타 요청사항': booking.memo || '없음',
       '접수 일시': new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
     };

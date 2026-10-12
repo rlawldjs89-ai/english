@@ -24,21 +24,19 @@ export default function Header({
   const isAdmin = Boolean(currentUser && (currentUser.role === 'admin' || isAdminEmail(currentUser.email)));
 
   const menuItems = [
-    { label: '과목별 수업', sectionId: 'brand-section' },
-    { label: '교과 과정', sectionId: 'courses-section' },
+    { label: '과목별 지도', sectionId: 'courses-section' },
+    { label: '학년별 과정', sectionId: 'grade-guide-section' },
+    { label: '과외비 안내', sectionId: 'pricing-section', isHighlight: true },
+    { label: '방문 vs 화상', sectionId: 'comparison-section' },
+    { label: '선생님 매칭', sectionId: 'matching-section' },
+    { label: '성적향상 후기', sectionId: 'reviews-section' },
+    { label: 'FAQ', sectionId: 'faq-section' },
     { 
-      label: '🗣️ 제2외국어·회화·인증시험', 
+      label: '🗣️ 외국어 회화센터', 
       isPageLink: true, 
       view: 'conversation' as const, 
       isSpecial: true 
-    },
-    { label: '내신·수능 대비', sectionId: 'exams-section' },
-    { label: '🎓 검정고시', sectionId: 'ged-section', isHighlight: true },
-    { label: '✈️ 해외캠프·유학', sectionId: 'camp-section' },
-    { label: '수업 방식', sectionId: 'comparison-section' },
-    { label: '선생님 배정', sectionId: 'matching-section' },
-    { label: '🎬 인터뷰', sectionId: 'interview-section' },
-    { label: '수업 후기', sectionId: 'reviews-section' }
+    }
   ];
 
   const handleMenuItemClick = (item: typeof menuItems[0]) => {

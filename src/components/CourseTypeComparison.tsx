@@ -29,7 +29,7 @@ export default function CourseTypeComparison() {
             Flexible Class Formats
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight keep-all break-keep">
-            생활 패턴과 학습 목표에<br className="block md:hidden" /> 잘 맞는 수업 방식을<br className="block md:hidden" /> 선택하세요.
+            학생의 학습 성향과<br className="block md:hidden" /> 생활 패턴에 꼭 맞는<br className="block md:hidden" /> 수업 방식을 선택하세요.
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-500 leading-relaxed keep-all break-keep">
             방문수업의 묵직한 대면 집중력과 화상수업의 스마트하고 유연한 시간 관리 능력 모두 각자의 강점이 뚜렷합니다.<br className="hidden sm:inline" /> 

@@ -12,16 +12,16 @@ import Header from './components/Header';
 import MainVisual from './components/MainVisual';
 import Benefits from './components/Benefits';
 import Courses from './components/Courses';
-import ConversationCourse from './components/ConversationCourse';
-import ExamPreparation from './components/ExamPreparation';
+import GradeLevelGuide from './components/GradeLevelGuide';
+import TutoringPricing from './components/TutoringPricing';
 import GedCourse from './components/GedCourse';
-import CampStudyAbroad from './components/CampStudyAbroad';
 import CourseTypeComparison from './components/CourseTypeComparison';
 import TeacherMatching from './components/TeacherMatching';
 import InterviewSection from './components/InterviewSection';
 import TrialInfo from './components/TrialInfo';
 import ReviewsSection from './components/ReviewsSection';
 import FaqSection from './components/FaqSection';
+import ConversationBanner from './components/ConversationBanner';
 import BrandIntro from './components/BrandIntro';
 import Mypage from './components/Mypage';
 import AdminDashboard from './components/AdminDashboard';
@@ -302,7 +302,7 @@ export default function App() {
       <main className="flex-1">
         {activeView === 'home' && (
           <div className="animate-in fade-in duration-300">
-            {/* SECTION 1. 메인 비주얼 */}
+            {/* SECTION 1. 메인 비주얼 (초중고 전과목 전문과외 히어로 & 30분 무료 모의수업 신청 폼) */}
             <MainVisual 
               onNavigateToBooking={handleNavigateToBooking}
               onNavigateToCourses={() => scrollToSection('courses-section')}
@@ -314,48 +314,45 @@ export default function App() {
               currentUser={user}
             />
 
-            {/* SECTION 2. 신뢰를 주는 핵심 장점 */}
+            {/* SECTION 2. 5대 핵심 안심 보장 (교사 검증, 무료 모의수업, 재매칭 보장 등) */}
             <Benefits />
 
-            {/* SECTION 3. 대상별 영어수업 */}
+            {/* SECTION 3. 국·영·수·과·사 5대 교과 과목별 전문 지도 커리큘럼 */}
             <Courses onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 4. 영어 회화수업 */}
-            <ConversationCourse 
-              onNavigateToBooking={handleNavigateToBooking} 
-              onNavigateToConversationPage={() => changeView('conversation')}
-            />
+            {/* SECTION 4. 초등·중등·고등·수능 학년별 맞춤 솔루션 로드맵 */}
+            <GradeLevelGuide onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 5. 교과 내신 및 인증시험 대비 */}
-            <ExamPreparation onNavigateToBooking={handleNavigateToBooking} />
+            {/* SECTION 5. 투명하고 합리적인 과외비 가이드 & 비용 안내 */}
+            <TutoringPricing onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 6. 중·고졸 검정고시 1:1 맞춤 코칭 & 대입 전략 */}
-            <GedCourse onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 7. 해외 스쿨링 캠프 및 조기유학 컨설팅 */}
-            <CampStudyAbroad onNavigateToBooking={handleNavigateToBooking} />
-
-            {/* SECTION 7. 방문수업과 화상수업 비교 */}
+            {/* SECTION 7. 방문수업 vs 화상수업 비교 */}
             <CourseTypeComparison />
 
-            {/* SECTION 8. 선생님 배정 과정 */}
+            {/* SECTION 8. 5단계 전문 교사 매칭 시스템 */}
             <TeacherMatching />
 
-            {/* SECTION 9. 회원 & 코치 생생 인터뷰 영상 (상상코칭 / e상상코칭 / 이웃과외) */}
-            <InterviewSection onNavigateToBooking={handleNavigateToBooking} />
+            {/* SECTION 9. 중·고졸 검정고시 1:1 맞춤 코칭 & 대입 전략 */}
+            <GedCourse onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 10. 무료 체험수업 안내 */}
+            {/* SECTION 10. 30분 무료 사전 모의수업 안내 */}
             <TrialInfo onNavigateToBooking={handleNavigateToBooking} />
 
-            {/* SECTION 9. 실제 수업 후기 */}
+            {/* SECTION 11. 실제 성적 향상 후기 */}
             <ReviewsSection />
 
-            {/* SECTION 10. 자주 묻는 질문 FAQ */}
+            {/* SECTION 12. 회원 & 코치 생생 인터뷰 영상 */}
+            <InterviewSection onNavigateToBooking={handleNavigateToBooking} />
+
+            {/* SECTION 13. 자주 묻는 질문 FAQ */}
             <FaqSection />
 
-            {/* SECTION 11. 브랜드 소개 (교육철학) */}
-            <BrandIntro />
+            {/* SECTION 14. 외국어 회화 전용센터 안내 배너 */}
+            <ConversationBanner onNavigateToConversation={() => changeView('conversation')} />
 
+            {/* SECTION 15. 브랜드 소개 (교육철학) */}
+            <BrandIntro />
 
           </div>
         )}

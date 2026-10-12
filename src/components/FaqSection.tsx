@@ -7,7 +7,7 @@ export default function FaqSection() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null);
 
-  const categories = ['all', '검정고시', '체험수업', '수업방식', '수업료', '선생님', '대상별'];
+  const categories = ['all', '체험수업', '선생님', '수업방식', '수업료', '시험대비', '검정고시'];
 
   const filteredFaqs = selectedCategory === 'all'
     ? faqs
@@ -27,12 +27,14 @@ export default function FaqSection() {
         
         {/* Title */}
         <div className="text-center space-y-3">
-          <span className="text-xs font-bold text-blue-900 uppercase tracking-widest block">
+          <span className="text-xs font-bold text-orange-600 uppercase tracking-widest block">
             Frequently Asked Questions
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight keep-all break-keep">자주 묻는 질문 FAQ</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight keep-all break-keep">
+            학부모님들이 가장 자주 묻는 질문 FAQ
+          </h2>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto keep-all break-keep">
-            영어 일대일 과외 수업 매칭에 관한 부모님들과 성인 수강생 분들의 가장 빈번한 궁금증을 시원하게 해결해 드립니다.
+            1:1 전문 과외 매칭 및 무료 모의수업 진행에 대해 가장 궁금해하시는 핵심 질문들을 명쾌하게 해결해 드립니다.
           </p>
         </div>
 

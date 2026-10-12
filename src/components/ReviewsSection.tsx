@@ -19,7 +19,7 @@ export default function ReviewsSection() {
   const [successMsg, setSuccessMsg] = useState(false);
 
   useEffect(() => {
-    const local = localStorage.getItem('reviews_v1');
+    const local = localStorage.getItem('reviews_v2');
     if (local) {
       try {
         setReviews(JSON.parse(local));
@@ -27,12 +27,12 @@ export default function ReviewsSection() {
         setReviews(mockReviews);
       }
     } else {
-      localStorage.setItem('reviews_v1', JSON.stringify(mockReviews));
+      localStorage.setItem('reviews_v2', JSON.stringify(mockReviews));
       setReviews(mockReviews);
     }
   }, []);
 
-  const categories = ['all', '유아·초등', '중학생 내신', '고등학생 수능·내신', '성인 회화', '시험 대비', '시니어 영어'];
+  const categories = ['all', '초등 공부습관', '중등 수학', '고등 영어', '고등 국어·수능', '중등 과학·내신', '고등 수학'];
 
   const filteredReviews = selectedCategory === 'all' 
     ? reviews 
@@ -76,14 +76,15 @@ export default function ReviewsSection() {
         
         {/* Title */}
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-8">
-          <span className="text-xs font-bold text-blue-900 uppercase tracking-widest block">
-            Student & Parent Testimonials
+          <span className="text-xs font-bold text-orange-600 uppercase tracking-widest block">
+            Real Student & Parent Reviews
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight keep-all break-keep">
-            실시간 생생한 수업 후기
+            성적 향상으로 증명하는 생생한 수업 후기
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 leading-relaxed keep-all break-keep">
-            성적 향상의 기쁨을 맛본 초중고 학생들의 환호부터,<br className="block sm:hidden" /> 매주 회화 자신감을 가꿔가시는 시니어 수강생까지,<br className="hidden sm:inline" /> 실제 일대일 명품 영어 수업을 수강 중인<br className="block sm:hidden" /> 소중한 이야기를 감상하세요.
+            기초 부족에서 학교 시험 90점대 및 내신 1등급으로 도약한 학생들의 실제 수기부터,<br className="hidden sm:inline" /> 
+            아이의 자기주도 공부 습관 형성에 감동하신 학부모님들의 진솔한 추천 후기를 확인하세요.
           </p>
 
           <button
