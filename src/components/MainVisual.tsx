@@ -27,7 +27,7 @@ export default function MainVisual({
     elem: ['초1', '초2', '초3', '초4', '초5', '초6'],
     mid: ['중1', '중2', '중3'],
     high: ['고1', '고2', '고3', '재수·N수'],
-    ged: ['고졸검정고시'],
+    ged: ['중졸 검정고시', '고졸 검정고시'],
   };
 
   const [grade, setGrade] = useState('초1');
@@ -40,7 +40,7 @@ export default function MainVisual({
   // Pure tutoring subjects focused on K-12 Korean curriculum
   const PROGRAM_OPTIONS = gradeCategory === 'ged'
     ? [
-        '고졸 검정고시',
+        '검정고시 전과목',
         '수학',
         '영어',
         '국어',
@@ -83,7 +83,7 @@ export default function MainVisual({
     } else if (gradeCategory === 'high') {
       setSelectedPrograms((prev) => (prev.length > 0 ? prev : ['수학', '영어']));
     } else if (gradeCategory === 'ged') {
-      setSelectedPrograms(['고졸 검정고시', '수학']);
+      setSelectedPrograms(['검정고시 전과목', '수학']);
     }
   }, [gradeCategory]);
 
@@ -133,11 +133,15 @@ export default function MainVisual({
       // Also create local/server booking sync for client app compatibility
       const calculatedAge = grade.startsWith('초')
         ? String(7 + parseInt(grade.replace('초', '') || '1'))
+        : grade.includes('중졸')
+        ? '15'
         : grade.startsWith('중')
         ? String(13 + parseInt(grade.replace('중', '') || '1'))
+        : grade.includes('고졸')
+        ? '18'
         : grade.startsWith('고')
         ? String(16 + parseInt(grade.replace('고', '') || '1'))
-        : '19';
+        : '18';
 
       const newBooking: Booking = {
         id: 'b-' + Date.now(),
@@ -340,7 +344,9 @@ export default function MainVisual({
                 type="button"
                 onClick={() => {
                   setGradeCategory('ged');
-                  setGrade('고졸검정고시');
+                  if (!['중졸 검정고시', '고졸 검정고시'].includes(grade)) {
+                    setGrade('중졸 검정고시');
+                  }
                 }}
                 className={`py-2 text-[11px] font-bold rounded-lg transition-all text-center cursor-pointer ${
                   gradeCategory === 'ged'
