@@ -208,7 +208,7 @@ export default function MainVisual({
 
 
           <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.25] sm:leading-[1.15] keep-all break-keep">
-            내 아이 성적 향상의 확실한 시작,<br />
+            우리 아이 성적 향상의 확실한 시작,<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-sky-200 to-orange-300">
               검증된 1:1 전문 선생님
             </span>을<br />

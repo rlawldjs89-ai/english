@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserCheck, Sliders, ShieldCheck, Gift, FileText, CheckCircle2 } from 'lucide-react';
+import { UserCheck, Sliders, ShieldCheck, Gift, FileText } from 'lucide-react';
 
 export default function Benefits() {
   const benefitCards = [
@@ -85,11 +85,6 @@ export default function Benefits() {
                 <p className="text-xs sm:text-sm text-slate-500 leading-relaxed keep-all break-keep">
                   {card.desc}
                 </p>
-              </div>
-
-              <div className="pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-bold text-slate-600 group-hover:text-slate-900">
-                <CheckCircle2 size={14} className="text-emerald-600" />
-                <span>체계적인 1:1 맞춤 관리 보장</span>
               </div>
             </div>
           ))}
