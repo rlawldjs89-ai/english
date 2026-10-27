@@ -517,87 +517,60 @@ export default function App() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* 8. Dynamic Floating Badges: Quick Consult + Friendly SMS & Phone Consult */}
-      <div className="fixed right-4 bottom-5 md:right-8 md:bottom-8 z-40 flex flex-col items-end gap-3 pointer-events-auto">
-        {/* Top Floating Badge: Quick Free Consultation */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="flex flex-col items-end gap-1.5 group cursor-pointer"
-          onClick={handleNavigateToBooking}
-        >
-          {/* Pulsing Highlight Text Bubble */}
-          <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-[11px] md:text-xs py-1.5 px-3.5 rounded-full shadow-xl border border-orange-400/50 animate-bounce flex items-center gap-1.5">
-            <span className="text-xs animate-pulse">🤍</span>
-            빠른 무료 상담 신청!
-          </div>
+      {/* 8. Dynamic Bottom Floating Badges: Quick Consult + Friendly Phone & SMS Consult side-by-side */}
+      <div className="fixed bottom-3 sm:bottom-5 inset-x-0 z-40 flex justify-center pointer-events-none px-2 sm:px-4">
+        <div className="pointer-events-auto flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-3 max-w-xl w-full">
+          {/* Badge 1: 빠른 무료 상담 신청 */}
+          <motion.button 
+            type="button"
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
+            onClick={handleNavigateToBooking}
+            className="flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-[11px] sm:text-xs md:text-sm shadow-xl shadow-orange-500/30 border-2 border-white/60 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+          >
+            <span className="text-xs sm:text-sm animate-pulse">✨</span>
+            <span>빠른 무료 상담 신청</span>
+          </motion.button>
 
-          {/* Circular Floating Icon with Ring */}
-          <div className="relative w-13 h-13 md:w-15 md:h-15 bg-gradient-to-tr from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
-            <div className="absolute inset-0 rounded-full bg-orange-500 animate-ping opacity-20 group-hover:opacity-30" />
-            <span className="text-[10px] md:text-[11px] font-black tracking-widest text-white uppercase drop-shadow">CLICK</span>
-            <span className="text-xs md:text-sm animate-pulse filter drop-shadow">✨</span>
-          </div>
-        </motion.div>
+          {/* Badge 2: 친절한 상담 통화 */}
+          <motion.a 
+            href="tel:010-8374-6543"
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.6, duration: 0.3 }}
+            title="친절한 전화상담 바로 연결 (010-8374-6543)"
+            onClick={(e) => {
+              if (!navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/i)) {
+                e.preventDefault();
+                alert('📞 친절한 1:1 전화상담 안내\n\n직통 전화번호: 010-8374-6543\n\n모바일 기기에서는 바로 전화 연결이 실행됩니다!');
+              }
+            }}
+            className="flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-[11px] sm:text-xs md:text-sm shadow-xl shadow-emerald-600/30 border-2 border-white/60 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer no-underline whitespace-nowrap"
+          >
+            <Phone size={14} className="text-white drop-shadow animate-pulse" />
+            <span>친절한 상담 통화</span>
+          </motion.a>
 
-        {/* 1. Friendly Phone (통화하기) Consultation Badge */}
-        <motion.a 
-          href="tel:010-8374-6543"
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="flex flex-col items-end gap-1.5 group cursor-pointer no-underline"
-          title="친절한 전화상담 바로 연결 (010-8374-6543)"
-          onClick={(e) => {
-            if (!navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/i)) {
-              e.preventDefault();
-              alert('📞 친절한 1:1 전화상담 안내\n\n직통 전화번호: 010-8374-6543\n\n모바일 기기에서는 바로 전화 연결이 실행됩니다!');
-            }
-          }}
-        >
-          {/* Green Highlight Text Bubble */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-extrabold text-[10px] md:text-xs py-1 px-3 md:py-1.5 md:px-3.5 rounded-full shadow-xl border border-emerald-400/50 flex items-center gap-1 group-hover:scale-105 transition-transform whitespace-nowrap">
-            <span className="text-xs animate-pulse">📞</span>
-            친절한 상담 (통화하기)
-          </div>
-
-          {/* Circular Floating Phone Icon */}
-          <div className="relative w-13 h-13 md:w-15 md:h-15 bg-gradient-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
-            <div className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-20 group-hover:opacity-30" />
-            <Phone size={20} className="text-white drop-shadow animate-pulse" />
-            <span className="text-[9px] md:text-[10px] font-black text-emerald-100 mt-0.5 tracking-tighter">통화하기</span>
-          </div>
-        </motion.a>
-
-        {/* 2. Friendly SMS (문자하기) Consultation Badge (통화하기 아래 배치) */}
-        <motion.a 
-          href="sms:010-8374-6543"
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.9 }}
-          className="flex flex-col items-end gap-1.5 group cursor-pointer no-underline"
-          title="친절한 문자상담 바로 연결 (010-8374-6543)"
-          onClick={(e) => {
-            if (!navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/i)) {
-              e.preventDefault();
-              alert('💬 친절한 1:1 문자상담 안내\n\n직통 문자번호: 010-8374-6543\n\n모바일 기기에서는 바로 문자 앱(SMS)이 실행됩니다!');
-            }
-          }}
-        >
-          {/* Blue Highlight Text Bubble */}
-          <div className="bg-gradient-to-r from-sky-600 to-blue-600 text-white font-extrabold text-[10px] md:text-xs py-1 px-3 md:py-1.5 md:px-3.5 rounded-full shadow-xl border border-sky-400/50 flex items-center gap-1 group-hover:scale-105 transition-transform whitespace-nowrap">
-            <span className="text-xs">💬</span>
-            친절한 상담 (문자하기)
-          </div>
-
-          {/* Circular Floating SMS Icon */}
-          <div className="relative w-13 h-13 md:w-15 md:h-15 bg-gradient-to-tr from-sky-600 to-blue-500 hover:from-sky-500 hover:to-blue-400 text-white rounded-full shadow-2xl flex flex-col items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 border-2 border-white/40">
-            <div className="absolute inset-0 rounded-full bg-sky-500 animate-ping opacity-20 group-hover:opacity-30" />
-            <MessageSquare size={20} className="text-white drop-shadow" />
-            <span className="text-[9px] md:text-[10px] font-black text-sky-100 mt-0.5 tracking-tighter">문자하기</span>
-          </div>
-        </motion.a>
+          {/* Badge 3: 친절한 상담 문자 */}
+          <motion.a 
+            href="sms:010-8374-6543"
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.7, duration: 0.3 }}
+            title="친절한 문자상담 바로 연결 (010-8374-6543)"
+            onClick={(e) => {
+              if (!navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|IEMobile)/i)) {
+                e.preventDefault();
+                alert('💬 친절한 1:1 문자상담 안내\n\n직통 문자번호: 010-8374-6543\n\n모바일 기기에서는 바로 문자 앱(SMS)이 실행됩니다!');
+              }
+            }}
+            className="flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-2 sm:px-4 rounded-full bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-black text-[11px] sm:text-xs md:text-sm shadow-xl shadow-blue-600/30 border-2 border-white/60 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer no-underline whitespace-nowrap"
+          >
+            <MessageSquare size={14} className="text-white drop-shadow" />
+            <span>친절한 상담 문자</span>
+          </motion.a>
+        </div>
       </div>
 
     </div>
