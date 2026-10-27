@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, ArrowRight, MapPin, Send, CheckCircle, Loader2, Check, ShieldCheck, Sparkles, BookOpen, Clock, Award } from 'lucide-react';
+import professionalTutorBg from '../assets/images/professional_tutor_bg_1793069868633.jpg';
 import { getBookings, addBookingOnServer } from '../lib/storage';
 import { addConsultationToFirestore } from '../lib/firebase';
 import { Booking, User } from '../types';
@@ -200,27 +201,50 @@ export default function MainVisual({
   };
 
   return (
-    <section id="quick-consult-section" className="relative bg-slate-900 overflow-hidden py-16 md:py-24 text-white">
-      {/* Background radial gradient */}
-      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-500 via-slate-900 to-black pointer-events-none" />
+    <section id="quick-consult-section" className="relative bg-[#0d1e38] overflow-hidden py-16 md:py-24 text-white">
+      {/* Professional Teacher Background - Beautifully framed for both Mobile and Desktop */}
+      <div className="absolute top-0 left-0 right-0 h-[720px] sm:h-[780px] lg:h-full z-0 pointer-events-none select-none overflow-hidden">
+        <img 
+          src={professionalTutorBg} 
+          alt="1:1 맞춤 전문 교사 수업 현장" 
+          className="w-full h-full object-cover object-[39%_12%] sm:object-[40%_15%] md:object-[center_20%] opacity-85 md:opacity-90 filter contrast-[1.02] brightness-105" 
+          loading="eager"
+          onError={(e) => {
+            // Fallback to static public path if needed
+            if (e.currentTarget.src !== '/assets/images/professional_tutor_bg.jpg') {
+              e.currentTarget.src = '/assets/images/professional_tutor_bg.jpg';
+            }
+          }}
+        />
+        {/* Mobile overlay: protects text at top, keeps teacher face & smile clear and bright, seamless fade to navy at bottom */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d1e38]/75 via-[#0d1e38]/25 to-[#0d1e38] lg:hidden" />
+        
+        {/* Desktop overlay: protects left headline while letting teacher & student shine on the right */}
+        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-[#0d1e3d]/80 via-[#0e244b]/40 to-[#0e244b]/20" />
+        <div className="absolute inset-0 hidden lg:block bg-gradient-to-t from-[#0b182e]/60 via-transparent to-[#0b182e]/30" />
+        
+        {/* Soft subtle blue tint for elegant professional atmosphere */}
+        <div className="absolute inset-0 bg-blue-950/15 mix-blend-multiply" />
+      </div>
+
+      {/* Subtle radial light accent */}
+      <div className="absolute inset-0 opacity-25 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-sky-400/30 via-transparent to-transparent pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-4 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         
         {/* Left column text content: Focused purely on Professional K-12 Tutoring */}
         <div className="lg:col-span-7 space-y-6 md:space-y-8 text-center lg:text-left flex flex-col items-center lg:items-start">
           
-
-
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.25] sm:leading-[1.15] keep-all break-keep">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.25] sm:leading-[1.15] keep-all break-keep drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
             우리 아이 성적 향상의 확실한 시작,<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-sky-200 to-orange-300">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-sky-100 to-amber-200 drop-shadow-sm">
               검증된 1:1 전문 선생님
             </span>을<br />
             만나보세요.
           </h1>
 
-          <p className="text-slate-300 text-xs sm:text-sm md:text-base max-w-xl leading-relaxed mx-auto lg:mx-0 keep-all break-keep font-medium">
-            단순 아르바이트 대학생 과외가 아닙니다. 학력·경력·인성 검증을 거친 전공 베테랑 전문 교사진이 우리 아이 학교 기출 시험과 학습 성향에 맞추어 <strong>국어·영어·수학·과학·사회</strong> 전과목을 1:1 밀착 지도합니다.
+          <p className="text-slate-100 text-xs sm:text-sm md:text-base max-w-xl leading-relaxed mx-auto lg:mx-0 keep-all break-keep font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
+            단순 아르바이트 대학생 과외가 아닙니다. 학력·경력·인성 검증을 거친 전공 베테랑 전문 교사진이 우리 아이 학교 기출 시험과 학습 성향에 맞추어 <strong className="text-white font-bold underline decoration-amber-400/60 underline-offset-4">국어·영어·수학·과학·사회</strong> 전과목을 1:1 밀착 지도합니다.
           </p>
 
 
