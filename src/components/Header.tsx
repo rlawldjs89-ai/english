@@ -3,9 +3,9 @@ import { User, isAdminEmail } from '../types';
 import { Menu, X, User as UserIcon, LogOut, GraduationCap, ChevronRight } from 'lucide-react';
 
 interface HeaderProps {
-  activeView: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation';
+  activeView: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation' | 'camp';
   currentUser: User | null;
-  onNavigate: (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation') => void;
+  onNavigate: (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation' | 'camp') => void;
   onScrollToSection: (id: string) => void;
   onOpenLogin: () => void;
   onLogout: () => void;
@@ -36,6 +36,12 @@ export default function Header({
       isPageLink: true, 
       view: 'conversation' as const, 
       isSpecial: true 
+    },
+    { 
+      label: '✈️ 해외캠프·유학', 
+      isPageLink: true, 
+      view: 'camp' as const, 
+      isCampSpecial: true 
     }
   ];
 
@@ -69,7 +75,7 @@ export default function Header({
         </button>
 
         {/* Desktop Menu navigation */}
-        <nav className="hidden lg:flex items-center gap-4 xl:gap-6 text-xs font-bold text-slate-600">
+        <nav className="hidden lg:flex items-center gap-2 xl:gap-4 text-xs font-bold text-slate-600">
           {menuItems.map((item, idx) => (
             <button
               key={idx}
@@ -79,13 +85,17 @@ export default function Header({
                   ? activeView === 'conversation'
                     ? 'px-3 py-1.5 bg-blue-900 text-white rounded-xl shadow-md font-black ring-2 ring-blue-700'
                     : 'px-3 py-1.5 bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100 rounded-xl shadow-xs font-extrabold hover:scale-105'
-                  : item.isHighlight 
-                    ? 'px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-xs hover:shadow-md hover:scale-105 font-black' 
-                    : 'hover:text-blue-900'
+                  : item.isCampSpecial
+                    ? activeView === 'camp'
+                      ? 'px-3 py-1.5 bg-emerald-800 text-white rounded-xl shadow-md font-black ring-2 ring-emerald-600'
+                      : 'px-3 py-1.5 bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100 rounded-xl shadow-xs font-extrabold hover:scale-105'
+                    : item.isHighlight 
+                      ? 'px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full shadow-xs hover:shadow-md hover:scale-105 font-black' 
+                      : 'hover:text-blue-900'
               }`}
             >
               {item.label}
-              {!item.isHighlight && !item.isSpecial && (
+              {!item.isHighlight && !item.isSpecial && !item.isCampSpecial && (
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-900 transition-all group-hover:w-full" />
               )}
             </button>
@@ -175,13 +185,26 @@ export default function Header({
                     ? activeView === 'conversation'
                       ? 'bg-blue-900 text-white col-span-2 shadow-sm font-black ring-2 ring-blue-700'
                       : 'bg-blue-50 text-blue-900 border border-blue-200 col-span-2 font-extrabold'
-                    : item.isHighlight 
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white col-span-2 shadow-sm font-black' 
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
+                    : item.isCampSpecial
+                      ? activeView === 'camp'
+                        ? 'bg-emerald-800 text-white col-span-2 shadow-sm font-black ring-2 ring-emerald-600'
+                        : 'bg-emerald-50 text-emerald-900 border border-emerald-200 col-span-2 font-extrabold'
+                      : item.isHighlight 
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white col-span-2 shadow-sm font-black' 
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
                 }`}
               >
                 <span>{item.label}</span>
-                <ChevronRight size={12} className={item.isHighlight || (item.isSpecial && activeView === 'conversation') ? 'text-white' : 'text-slate-400'} />
+                <ChevronRight 
+                  size={12} 
+                  className={
+                    item.isHighlight || 
+                    (item.isSpecial && activeView === 'conversation') || 
+                    (item.isCampSpecial && activeView === 'camp') 
+                      ? 'text-white' 
+                      : 'text-slate-400'
+                  } 
+                />
               </button>
             ))}
           </div>

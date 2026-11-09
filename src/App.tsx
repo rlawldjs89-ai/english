@@ -27,6 +27,8 @@ import Mypage from './components/Mypage';
 import AdminDashboard from './components/AdminDashboard';
 import AuthModal from './components/AuthModal';
 import ConversationPage from './components/ConversationPage';
+import CampPage from './components/CampPage';
+import CampBanner from './components/CampBanner';
 
 import { 
   Phone, MessageSquare, Calendar, Shield, X, User as UserIcon, Check, Sparkles, BookOpen, AlertCircle
@@ -34,13 +36,13 @@ import {
 
 export default function App() {
   // Parse view from URL path/hash/search or localStorage
-  const getViewFromUrlOrStorage = (): 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation' => {
+  const getViewFromUrlOrStorage = (): 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation' | 'camp' => {
     if (typeof window !== 'undefined') {
       const pathname = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
       const search = window.location.search.toLowerCase();
 
-      // Priority 1: Check URL Pathname / Query / Hash for dedicated landing pages (e.g. /power for conversation ads)
+      // Priority 1: Check URL Pathname / Query / Hash for dedicated landing pages (e.g. /power for conversation ads, /camp for camps)
       if (
         pathname === '/power' || 
         pathname.startsWith('/power/') || 
@@ -54,6 +56,20 @@ export default function App() {
         search.includes('conversation')
       ) {
         return 'conversation';
+      }
+      if (
+        pathname === '/camp' || 
+        pathname.startsWith('/camp/') || 
+        pathname === '/camps' || 
+        pathname === '/overseas' ||
+        pathname === '/abroad' ||
+        hash === '#camp' ||
+        hash === '#camps' ||
+        hash === '#programs' ||
+        search.includes('camp') ||
+        search.includes('programs')
+      ) {
+        return 'camp';
       }
       if (pathname === '/booking' || pathname === '/apply' || hash === '#booking') {
         return 'booking';
@@ -81,13 +97,13 @@ export default function App() {
     if (savedView === 'mypage') {
       return currentUser ? 'mypage' : 'home';
     }
-    if (savedView && ['home', 'booking', 'teachers', 'conversation'].includes(savedView)) {
-      return savedView as 'home' | 'booking' | 'teachers' | 'conversation';
+    if (savedView && ['home', 'booking', 'teachers', 'conversation', 'camp'].includes(savedView)) {
+      return savedView as 'home' | 'booking' | 'teachers' | 'conversation' | 'camp';
     }
     return 'home';
   };
 
-  const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation'>(getViewFromUrlOrStorage);
+  const [activeView, setActiveView] = useState<'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation' | 'camp'>(getViewFromUrlOrStorage);
 
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -109,7 +125,7 @@ export default function App() {
     }
   };
 
-  const changeView = (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation') => {
+  const changeView = (view: 'home' | 'booking' | 'mypage' | 'admin' | 'teachers' | 'conversation' | 'camp') => {
     setActiveView(view);
     localStorage.setItem('active_view_v1', view);
     syncBookingsFromServer(); // Fetch latest entries immediately on view switch
@@ -119,6 +135,7 @@ export default function App() {
       const currentPath = window.location.pathname;
       let targetPath = '/';
       if (view === 'conversation') targetPath = '/power';
+      else if (view === 'camp') targetPath = '/camp';
       else if (view === 'booking') targetPath = '/booking';
       else if (view === 'teachers') targetPath = '/teachers';
       else if (view === 'admin') targetPath = '/admin';
@@ -351,7 +368,10 @@ export default function App() {
             {/* SECTION 14. 외국어 회화 전용센터 안내 배너 */}
             <ConversationBanner onNavigateToConversation={() => changeView('conversation')} />
 
-            {/* SECTION 15. 브랜드 소개 (교육철학) */}
+            {/* SECTION 15. 글로벌 해외캠프 & 유학센터 안내 배너 */}
+            <CampBanner onNavigateToCamp={() => changeView('camp')} />
+
+            {/* SECTION 16. 브랜드 소개 (교육철학) */}
             <BrandIntro />
 
           </div>
@@ -359,6 +379,18 @@ export default function App() {
 
         {activeView === 'conversation' && (
           <ConversationPage
+            onBackToHome={() => changeView('home')}
+            currentUser={user}
+            onBookingSuccess={(updatedList) => {
+              const updated = updatedList || getBookings();
+              setBookings(updated);
+              setBookingCount(updated.length);
+            }}
+          />
+        )}
+
+        {activeView === 'camp' && (
+          <CampPage
             onBackToHome={() => changeView('home')}
             currentUser={user}
             onBookingSuccess={(updatedList) => {
