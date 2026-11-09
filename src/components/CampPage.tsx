@@ -822,7 +822,7 @@ export default function CampPage({
         preferredDate: new Date().toISOString().split('T')[0],
         preferredTimeSlot: formTimeSlot === '평일 오전' ? '평일 오전' : formTimeSlot === '평일 오후' ? '평일 오후' : '평일 저녁',
         reason: `[해외캠프/유학 신청] 희망시기: ${formDepartureTiming} / 여권: ${formPassport}`,
-        goals: formQuestions.trim() || '캠프 상세 일정표, 브로셔 무료 발송 및 맞춤 유선 상담 요청',
+        goals: formQuestions.trim() || '캠프 상세 일정표 및 1:1 맞춤 유선 상담 요청',
         preferredTeacherGender: '무관',
         status: '신청 접수',
         createdAt: new Date().toISOString(),
@@ -981,13 +981,12 @@ export default function CampPage({
                   <span className="px-2.5 py-0.5 bg-orange-100 text-orange-700 text-[11px] font-black rounded-full">
                     🔥 2027 겨울 공식 모집중 (선착순)
                   </span>
-                  <span className="text-[11px] text-slate-400 font-semibold">브로셔 무료 발송</span>
                 </div>
                 <h3 className="text-lg sm:text-xl font-black text-slate-900">
                   해외캠프 & 유학 맞춤 상담 신청
                 </h3>
                 <p className="text-xs text-slate-500">
-                  희망 프로그램을 선택하시면 상세 일정표 및 안내서를 무료로 발송해 드립니다.
+                  희망 프로그램을 선택하시면 전문 디렉터가 맞춤 상세 일정과 커리큘럼을 안내해 드립니다.
                 </p>
               </div>
 
@@ -997,9 +996,9 @@ export default function CampPage({
                     <Check size={24} />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-base font-black text-emerald-950">상담 신청 및 브로셔 요청 접수 완료!</h4>
+                    <h4 className="text-base font-black text-emerald-950">상담 신청 접수 완료!</h4>
                     <p className="text-xs text-emerald-800 leading-relaxed">
-                      담당 캠프 디렉터가 입력해주신 연락처(<strong>{formContact}</strong>)로 신속히 안내자료를 발송해 드리며 안내 전화를 드리겠습니다.
+                      담당 캠프 디렉터가 입력해주신 연락처(<strong>{formContact}</strong>)로 신속히 확인 후 맞춤 안내 전화를 드리겠습니다.
                     </p>
                   </div>
                   <button
@@ -1160,13 +1159,13 @@ export default function CampPage({
                     ) : (
                       <>
                         <Send size={15} />
-                        <span>해외캠프 맞춤 상담 & 브로셔 무료 신청하기</span>
+                        <span>해외캠프 1:1 맞춤 상담 신청하기</span>
                       </>
                     )}
                   </button>
 
                   <p className="text-[10px] text-center text-slate-400">
-                    ※ 입력하신 정보는 캠프 상담 및 브로셔 발송 안내 목적으로만 안전하게 사용됩니다.
+                    ※ 입력하신 정보는 캠프 맞춤 상담 안내 목적으로만 안전하게 사용됩니다.
                   </p>
 
                 </form>
@@ -1671,7 +1670,7 @@ export default function CampPage({
               우리 아이에게 맞는 최적의 해외캠프를 찾으셨나요?
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed max-w-xl">
-              상단의 맞춤 상담 신청 양식을 작성해 주시면 상세 일자별 일정표와 안내 브로셔를 무료로 발송해 드립니다.
+              상단의 맞춤 상담 신청 양식을 작성해 주시면 전문 디렉터가 상세 일자별 일정표와 커리큘럼을 안내해 드립니다.
             </p>
           </div>
           <div className="shrink-0 flex justify-center">
